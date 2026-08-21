@@ -45,11 +45,6 @@
   --gold-dim: var(--mg-color-gold-dim);
   --ok: var(--mg-color-ok);
 
-  /* Pastilha clara atrás do logo oficial (PNG em tons escuros, pensado para
-     fundo claro) — a marca em si não é redesenhada, só ganha uma base que
-     garante contraste sobre o tema escuro do site. */
-  --logo-chip-bg: #f7f5f1;
-
   /* translúcidos derivados do dourado (§5) */
   --gold-06: rgba(201, 169, 97, 0.06);
   --gold-10: rgba(201, 169, 97, 0.1);
