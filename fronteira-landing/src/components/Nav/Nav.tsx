@@ -19,7 +19,7 @@ export function Nav() {
       <div className="container">
         <div className={[styles.pill, scrolled ? styles.scrolled : ''].filter(Boolean).join(' ')}>
           <a className={styles.brand} href="#topo">
-            <BrandLogo height={24} />
+            <BrandLogo height={38} />
           </a>
 
           <nav className={styles.links} aria-label={nav.ariaLabel}>

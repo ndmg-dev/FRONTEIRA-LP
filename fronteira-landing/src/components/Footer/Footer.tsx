@@ -11,7 +11,7 @@ export function Footer() {
         <div className={styles.top}>
           <div className={styles.brandBlock}>
             <span className={styles.brand}>
-              <BrandLogo height={20} />
+              <BrandLogo height={32} />
             </span>
             <p className={styles.tagline}>{footer.tagline}</p>
           </div>
