@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Campos numéricos: uma env var declarada mas vazia (comum quando o compose
+# de produção repassa `${VAR}` e o Coolify não tem valor cadastrado pra ela)
+# não deve derrubar o serviço — trata como "não definida" e cai no default.
+_INT_FIELDS_WITH_DEFAULT = ("rate_limit_per_hour", "followup_business_days")
 
 
 class Settings(BaseSettings):
@@ -20,6 +26,15 @@ class Settings(BaseSettings):
     admin_jwt_secret: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _empty_string_falls_back_to_default(cls, data: object) -> object:
+        if isinstance(data, dict):
+            for field in _INT_FIELDS_WITH_DEFAULT:
+                if data.get(field) == "":
+                    data.pop(field)
+        return data
 
     @property
     def allowed_origins_list(self) -> list[str]:
