@@ -1,155 +1,159 @@
 # Deploy no Coolify
 
-Este repo é um monorepo: a landing (Vite/React) na raiz e a API (FastAPI) em
-`server/`. No Coolify, cada pedaço vira um **resource** separado — é o jeito
-mais simples de configurar e o que permite redeploy/rollback independentes.
+Status: **em produção.** Este documento descreve o setup real que está rodando
+— não um plano teórico. Se precisar recriar do zero (nova VPS, novo ambiente),
+siga na ordem; se só precisar entender/depurar o que já existe, vá direto pro
+§4 (Troubleshooting).
 
-Você vai criar **3 resources**:
+## Arquitetura
 
-1. **PostgreSQL** — banco gerenciado nativo do Coolify.
-2. **fronteira-api** — aplicação Docker a partir de `server/Dockerfile`.
-3. **fronteira-web** — aplicação Docker a partir de `Dockerfile` (raiz).
+Um único **resource Docker Compose** no Coolify, a partir de
+`fronteira-landing/docker-compose.prod.yml`, orquestrando 3 serviços juntos:
+`db` (Postgres), `api` (FastAPI) e `web` (Nginx servindo a SPA). Não usamos o
+Postgres nativo do Coolify — o banco vive dentro do próprio compose, num
+volume nomeado (`fronteira_db_data`).
 
-Domínios já criados na VPS (DNS apontando pro Coolify):
+> **Tradeoff assumido:** sem backup automático de um clique (o que o Postgres
+> nativo do Coolify teria). Como o banco guarda dado real de lead com
+> consentimento LGPD, vale montar uma rotina própria de `pg_dump` — ainda não
+> feito, ver §5.
 
-| Resource | Domínio |
-|---|---|
-| `fronteira-web` | `https://icmsfronteira.nucleodigital.cloud` |
-| `fronteira-api` | `https://api.icmsfronteira.nucleodigital.cloud` |
+| Serviço | Domínio | Repositório |
+|---|---|---|
+| `web` | `https://icmsfronteira.nucleodigital.cloud` | raiz do repo |
+| `api` | `https://api.icmsfronteira.nucleodigital.cloud` | `server/` |
+| `db` | (sem domínio, só interno) | — |
 
----
+## 1. Configuração do resource no Coolify
 
-## 1. Banco de dados
+- **+ New Resource → Docker Compose**, repo `ndmg-dev/FRONTEIRA-LP`, branch `main`.
+- **Base Directory:** `/fronteira-landing` (o compose de produção fica dentro
+  dessa pasta, não na raiz do repo — a raiz do repo ainda tem um `index.html`
+  antigo da v1 estática, que não tem nada a ver com o app atual).
+- **Docker Compose Location:** `/docker-compose.prod.yml` (relativo ao Base
+  Directory acima).
+- O Coolify detecta os 3 serviços automaticamente e mostra campos de
+  **Domains for api** / **Domains for web** — preenche com as URLs da tabela
+  acima, sempre com `https://` (ver gotcha no §4).
 
-Coolify → **+ New Resource → Database → PostgreSQL** (16.x). Deixe o Coolify
-gerar usuário/senha. Depois de criado, copie a **connection string interna**
-(algo como `postgres://user:pass@<nome-do-serviço>:5432/postgres`) — é ela que
-vai virar `DATABASE_URL` da API, só trocando o prefixo:
+## 2. Variáveis de ambiente
 
-```
-postgresql+psycopg://<user>:<pass>@<host-interno>:5432/<db>
-```
-
-(`postgresql+psycopg://`, não `postgres://` — é o driver que o SQLAlchemy usa
-aqui.)
-
-## 2. API (`fronteira-api`)
-
-Coolify → **+ New Resource → Application → Dockerfile** apontando pro mesmo
-repositório Git.
-
-- **Base Directory:** `server` (crítico — é o que isola o build context da
-  API do resto do monorepo; sem isso o Coolify tenta buildar a partir da raiz
-  e não acha o `Dockerfile` certo).
-- **Port:** `8000`.
-- **Health check path:** `/health`.
-- **Domínio:** `api.icmsfronteira.nucleodigital.cloud` (Coolify assina TLS via
-  Let's Encrypt automaticamente).
-
-**Variáveis de ambiente** (Coolify → aba Environment Variables desse
-resource — runtime, não precisam de build arg):
-
-| Variável | Valor |
-|---|---|
-| `DATABASE_URL` | a connection string do passo 1, já com `postgresql+psycopg://` |
-| `RESEND_API_KEY` | chave da conta Resend (Resend → API Keys) |
-| `EMAIL_FROM` | ver §2.1 abaixo — depende do domínio verificado no Resend |
-| `TEAM_INBOX` | e-mail que recebe as notificações internas |
-| `IP_HASH_PEPPER` | segredo aleatório novo — gere com `openssl rand -hex 32`, **nunca** reaproveite o de dev |
-| `ALLOWED_ORIGINS` | `https://icmsfronteira.nucleodigital.cloud` |
-| `RATE_LIMIT_PER_HOUR` | `20` (ajuste se precisar) |
-
-### 2.1 Verificar o domínio no Resend
-
-No painel do Resend → **Domains → Add Domain**. Recomendo verificar
-`icmsfronteira.nucleodigital.cloud` mesmo (não precisa de outro subdomínio só
-pra e-mail). O Resend vai gerar registros DNS específicos da sua conta —
-adicione todos na zona DNS onde `nucleodigital.cloud` está gerenciado:
-
-- **TXT** (SPF) — geralmente em `icmsfronteira.nucleodigital.cloud` ou
-  `send.icmsfronteira.nucleodigital.cloud`, dependendo de como o Resend gerar.
-- **CNAME** (DKIM) — 1 a 3 registros, prefixo tipo `resend._domainkey.*`.
-- **TXT** (DMARC) — em `_dmarc.icmsfronteira.nucleodigital.cloud`, algo como
-  `v=DMARC1; p=quarantine; rua=mailto:seu-email@...`.
-
-Esses valores são únicos da sua conta — copie exatamente o que o Resend
-mostrar na tela de verificação do domínio, não os invente. Depois de
-propagar (minutos a poucas horas), o Resend marca o domínio como
-**Verified** — só então `EMAIL_FROM` pode usar esse domínio.
-
-Com o domínio verificado, `EMAIL_FROM` fica algo como:
+Aba **Environment Variables** do resource, todas de uma vez (uma por linha):
 
 ```
-Fronteira <contato@icmsfronteira.nucleodigital.cloud>
+POSTGRES_USER=fronteira
+POSTGRES_PASSWORD=<gerar com: openssl rand -base64 24>
+POSTGRES_DB=fronteira
+RESEND_API_KEY=<chave da conta Resend — Resend → API Keys>
+EMAIL_FROM=Fronteira <contato@icmsfronteira.nucleodigital.cloud>
+TEAM_INBOX=<e-mail real que recebe notificação de cada lead>
+IP_HASH_PEPPER=<gerar com: openssl rand -hex 32>
+ALLOWED_ORIGINS=https://icmsfronteira.nucleodigital.cloud
+RATE_LIMIT_PER_HOUR=20
+VITE_API_BASE=https://api.icmsfronteira.nucleodigital.cloud
 ```
 
-(ajuste a parte antes do `@` como preferir — `contato@`, `demo@`, etc.; o que
-importa é o domínio bater com o que foi verificado no Resend.)
+**`VITE_API_BASE` é build arg, não env var comum:** o Vite grava esse valor
+dentro do JS na hora do `vite build`, não lê em runtime. Se precisar trocar a
+URL da API, é redeploy (rebuild) do `web`, não só restart. O Coolify, em modo
+Docker Compose, usa o mesmo bloco de Environment Variables pra alimentar tanto
+`environment:` quanto `build.args:` do compose — não tem aba separada aqui.
 
-**Migração:** já é automática. O `entrypoint.sh` roda `alembic upgrade head`
-antes de subir o `uvicorn` sempre que o container inicia sem override de
-comando — que é exatamente como o Coolify chama a imagem. Nada a fazer manual
-aqui além de garantir que `DATABASE_URL` está certo antes do primeiro deploy.
+**Toda edição de env var exige redeploy pra valer** — o processo já rodando
+não relê o ambiente sozinho. Depois de salvar qualquer mudança nessa aba,
+clique em **Redeploy** antes de testar.
 
-## 3. Frontend (`fronteira-web`)
+### 2.1 Domínio verificado no Resend
 
-Coolify → **+ New Resource → Application → Dockerfile**, mesmo repositório.
+Domínio verificado: `icmsfronteira.nucleodigital.cloud` (Resend → Domains).
+Registros DNS (SPF/DKIM) adicionados na Hostinger, na zona de
+`nucleodigital.cloud`. Status **Verified** — confirmar de vez em quando que
+continua assim (Resend pode marcar como inválido se algum registro for
+removido acidentalmente).
 
-- **Base Directory:** `.` (raiz do repo).
-- **Port:** `80`.
-- **Domínio:** `icmsfronteira.nucleodigital.cloud`.
+## 3. Migração de banco
 
-**Build argument** (não é env var runtime — no Coolify isso fica numa aba
-separada, geralmente "Build Variables" ou dentro do bloco de build):
+Automática. `server/entrypoint.sh` roda `alembic upgrade head` antes de subir
+o `uvicorn` sempre que o container `api` inicia **sem** comando sobrescrito —
+que é como o Coolify chama a imagem em produção. Nada manual aqui.
 
-| Build arg | Valor |
-|---|---|
-| `VITE_API_BASE` | `https://api.icmsfronteira.nucleodigital.cloud` |
+## 4. Troubleshooting — problemas reais já resolvidos
 
-> **Isso é o detalhe que mais gente erra:** o Vite grava `VITE_API_BASE`
-> dentro do JS já na hora do `vite build` — não existe leitura em runtime.
-> Configurar isso como variável de ambiente comum do container **não tem
-> nenhum efeito**; o bundle já foi gerado sem ela. Tem que ser build arg.
->
-> Consequência prática: **toda vez que a URL da API mudar, o front precisa
-> ser rebuildado** (redeploy no Coolify), não só reiniciado.
+### "Bind for 0.0.0.0:8000/80 failed: port is already allocated"
 
-Confira que `ALLOWED_ORIGINS` da API bate exatamente com essa URL (sem barra
-final, protocolo `https://` incluso) — CORS é estrito por design (§B.7 do
-spec de backend); já deixei o valor certo na tabela acima.
+O compose original publicava as portas dos serviços direto no host
+(`ports: ["8000:8000"]`, `ports: ["80:80"]`). O proxy do Coolify (Traefik) já
+ocupa 80/443 no host e roteia pelos domínios via rede interna do Docker — não
+se deve publicar porta nenhuma pra fora. **Fix:** trocado `ports:` por
+`expose:` no `docker-compose.prod.yml` (commit `e00a62b`).
 
-## 4. Ordem recomendada do primeiro deploy
+### "no available server" no navegador (com domínio certo, HTTPS quebrado)
 
-1. Sobe o Postgres, copia a connection string.
-2. No Resend, adiciona o domínio `icmsfronteira.nucleodigital.cloud` e
-   configura os registros DNS que ele pedir (SPF/DKIM/DMARC — §2.1). Pode
-   levar de minutos a horas pra propagar; não bloqueia os próximos passos,
-   só o envio de e-mail de verdade.
-3. Sobe `fronteira-api` com as variáveis da tabela do passo 2 — confere
-   `GET https://api.icmsfronteira.nucleodigital.cloud/health`.
-4. Sobe `fronteira-web` com `VITE_API_BASE` = `https://api.icmsfronteira.nucleodigital.cloud`.
-5. Testa o formulário ponta a ponta em `https://icmsfronteira.nucleodigital.cloud`.
-6. Quando o Resend marcar o domínio como **Verified**, testa de novo e
-   confere se a notificação interna e a auto-resposta chegaram de verdade
-   (não só o `201`/protocolo na tela — isso já funciona mesmo sem o domínio
-   verificado, o Resend só rejeita o envio real).
+Sintoma: container rodando limpo nos logs, mas o proxy não roteava — e o
+certificado TLS nunca foi emitido pro domínio `web`, só pro `api`.
 
-## 5. Antes de anunciar a URL pra alguém de verdade
+Causa raiz: o `HEALTHCHECK` do `Dockerfile` do frontend usava
+`wget http://localhost/`. Dentro do container, `localhost` podia resolver
+para `::1` (IPv6) antes de `127.0.0.1`, e o nginx só escuta em `0.0.0.0:80`
+(IPv4) — o `wget` do Alpine não cai pro IPv4 sozinho quando isso acontece.
+Resultado: o healthcheck falhava **sempre**, o Docker marcava o container
+como `unhealthy`, e o Traefik se recusa a rotear (e, no caso, também não
+completou a emissão do certificado) pra um backend sem healthcheck OK.
+**Fix:** trocado `http://localhost/` por `http://127.0.0.1/` no
+`HEALTHCHECK` (commit `bee204c`). Confirmado localmente: `docker inspect
+--format='{{.State.Health.Status}}'` foi de sempre-falhando pra `healthy`.
 
-- Confirmar que o domínio está **Verified** no Resend (painel mostra o status)
-  — sem isso o e-mail cai em spam ou é rejeitado pelos grandes provedores.
-- Trocar o `href="#"` do checkbox de consentimento (`copy.ts →
-  demoForm.consent.href`) pela URL real da Política de Privacidade, quando
-  ela existir.
-- Rodar o Lighthouse contra a URL de produção (fontes/CORS mudam levemente
-  os números medidos em localhost).
+**Lição pra qualquer HEALTHCHECK futuro neste projeto:** nunca usar
+`localhost` dentro de um container Alpine/Docker — sempre `127.0.0.1`
+explícito (ou `::1` se o serviço realmente escutar em IPv6).
+
+### E-mail não chega, mas o formulário confirma normalmente
+
+Isso é esperado por design (§B.6 do spec de backend — falha de e-mail nunca
+derruba a request), então o sintoma sozinho não diz muito. Diagnóstico, nessa
+ordem:
+
+1. **Resend → Logs.** Se aparecer "No logs yet" mesmo depois de testar o
+   formulário, a chamada pra API do Resend **nem foi tentada** — geralmente
+   `RESEND_API_KEY` vazia no ambiente do container (variável não setada no
+   Coolify, ou setada só *depois* do container já estar rodando, sem
+   redeploy — ver o aviso do §2). Se aparecer um log com erro (4xx/5xx), o
+   problema é no valor de algum campo (e-mail de destino vazio/inválido,
+   remetente de domínio não verificado, etc.) — o corpo do erro do Resend
+   costuma dizer exatamente qual.
+2. Conferir a aba Environment Variables do Coolify pra ver se `TEAM_INBOX`
+   está preenchido (já aconteceu de ficar em branco sem querer).
+3. Depois de qualquer correção de env var: **Save → Redeploy**, só então
+   testar de novo.
+
+### Editei o campo de domínio no Coolify e piorou
+
+Os campos "Domains for api"/"Domains for web" devem sempre começar com
+`https://`. Se você digitar `http://` ali (mesmo que só pra "testar sem
+HTTPS"), o Coolify para de provisionar TLS/certificado pra aquele domínio —
+teste alternativo de HTTP deve ser feito **na barra de endereço do
+navegador**, nunca editando esse campo. Se isso acontecer, reverte pra
+`https://`, Save, Redeploy.
+
+## 5. Pendências conhecidas
+
+- **Backup do Postgres:** nenhuma rotina automática hoje (ver tradeoff no
+  topo). Considerar um cron simples de `pg_dump` pro volume ou pra storage
+  externo antes de ter volume relevante de leads reais.
+- **Política de Privacidade:** o link do checkbox de consentimento
+  (`copy.ts → demoForm.consent.href`) ainda aponta pra `#`. Trocar quando a
+  página existir.
+- **Lighthouse em produção:** rodado só contra `localhost` durante o
+  desenvolvimento — vale rodar de novo contra a URL pública (fontes/CORS
+  mudam levemente os números).
 
 ## Desenvolvimento local não muda
 
 `server/docker-compose.yml` continua sendo o jeito de rodar tudo localmente
 (Postgres + API com `--reload`, migração manual via
 `docker compose run api alembic upgrade head`, testes via
-`docker compose run api pytest`) — nada disso foi alterado. O `entrypoint.sh`
-só ativa o caminho automático de migração+start quando roda **sem** comando
-sobrescrito, que é como o `docker-compose.yml` de dev já não roda (ele passa
-`--reload` explicitamente) e como o Coolify em produção roda por padrão.
+`docker compose run api pytest`) — nada disso foi alterado. O
+`docker-compose.prod.yml` é só pro Coolify; o `entrypoint.sh` só ativa o
+caminho automático de migração+start quando roda **sem** comando sobrescrito,
+que é como o compose de dev já não roda (passa `--reload` explicitamente) e
+como o Coolify em produção roda por padrão.
