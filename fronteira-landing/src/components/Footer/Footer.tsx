@@ -1,5 +1,5 @@
-import { brand, footer } from '../../lib/copy'
-import { Logo } from '../ui/Logo'
+import { footer } from '../../lib/copy'
+import { BrandLogo } from '../ui/BrandLogo'
 import styles from './Footer.module.css'
 
 
@@ -11,8 +11,7 @@ export function Footer() {
         <div className={styles.top}>
           <div className={styles.brandBlock}>
             <span className={styles.brand}>
-              <Logo size={22} />
-              <span className={styles.brandName}>{brand.name}</span>
+              <BrandLogo height={20} />
             </span>
             <p className={styles.tagline}>{footer.tagline}</p>
           </div>

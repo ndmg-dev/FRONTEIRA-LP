@@ -1,9 +1,9 @@
 import { useScroll, useMotionValueEvent } from 'framer-motion'
 import { useState } from 'react'
 
-import { brand, nav } from '../../lib/copy'
+import { nav } from '../../lib/copy'
+import { BrandLogo } from '../ui/BrandLogo'
 import { Button } from '../ui/Button'
-import { Logo } from '../ui/Logo'
 import styles from './Nav.module.css'
 
 export function Nav() {
@@ -19,8 +19,7 @@ export function Nav() {
       <div className="container">
         <div className={[styles.pill, scrolled ? styles.scrolled : ''].filter(Boolean).join(' ')}>
           <a className={styles.brand} href="#topo">
-            <Logo />
-            <span className={styles.brandName}>{brand.name}</span>
+            <BrandLogo height={24} />
           </a>
 
           <nav className={styles.links} aria-label={nav.ariaLabel}>

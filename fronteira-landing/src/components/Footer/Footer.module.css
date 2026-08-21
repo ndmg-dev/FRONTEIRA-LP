@@ -31,12 +31,6 @@
   gap: 9px;
 }
 
-.brandName {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 600;
-}
-
 .tagline {
   font-size: 0.92rem;
   color: var(--ink-2);
