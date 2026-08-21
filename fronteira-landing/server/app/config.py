@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     ip_hash_pepper: str = "change-me-in-prod"
     allowed_origins: str = "http://localhost:5173"
     rate_limit_per_hour: int = 20
+    internal_api_token: str = ""
+    followup_business_days: int = 2
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

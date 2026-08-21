@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from .deps import get_settings
 from .routes.demo import router as demo_router
+from .routes.internal import router as internal_router
 from .schemas import FIELD_MESSAGES
 
 # Falso positivo cosmético do pydantic 2.13 ao processar Field(alias=...) /
@@ -29,6 +30,7 @@ app.add_middleware(
 )
 
 app.include_router(demo_router)
+app.include_router(internal_router)
 
 
 @app.exception_handler(RequestValidationError)

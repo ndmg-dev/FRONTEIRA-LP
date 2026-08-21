@@ -70,3 +70,30 @@ def lead_autoresponse(row: dict[str, Any]) -> tuple[str, str]:
     </div>
     """
     return subject, html
+
+
+def lead_followup(row: dict[str, Any]) -> tuple[str, str]:
+    """Follow-up automático ao lead quando a demo ainda não foi respondida
+    pelo time (§ followup). Mesmo tom sóbrio do autoresponder."""
+    subject = f'Ainda por aqui? — {row["protocol"]}'
+    html = f"""
+    <div style="font-family:Arial,sans-serif;background:#0c0e12;color:#eceef2;padding:24px;">
+      <h2 style="color:#c9a961;margin:0 0 16px;">Sua demonstração do Fronteira</h2>
+      <p style="font-size:14px;">Olá, {row["name"]}.</p>
+      <p style="font-size:14px;">
+        Há alguns dias você solicitou uma demonstração do Fronteira para o
+        escritório <strong>{row["office"]}</strong> (protocolo
+        <strong style="color:#e6c982;">{row["protocol"]}</strong>) e ainda não
+        conseguimos falar com você.
+      </p>
+      <p style="font-size:14px;">
+        Se ainda tiver interesse, responda este e-mail com um horário que
+        funcione — ou nos avise se prefere deixar para depois.
+      </p>
+      <p style="color:#727b89;font-size:12px;margin-top:24px;">
+        Este e-mail é um lembrete automático referente à sua solicitação. Se
+        você já foi atendido, pode ignorá-lo.
+      </p>
+    </div>
+    """
+    return subject, html

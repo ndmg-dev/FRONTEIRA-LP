@@ -42,6 +42,7 @@ os.environ.setdefault("RATE_LIMIT_PER_HOUR", "1000")
 os.environ.setdefault("RESEND_API_KEY", "")
 os.environ.setdefault("EMAIL_FROM", "Fronteira <contato@fronteira.test>")
 os.environ.setdefault("TEAM_INBOX", "time@fronteira.test")
+os.environ.setdefault("INTERNAL_API_TOKEN", "test-internal-token")
 
 from app.db import Base, SessionLocal, engine  # noqa: E402
 from app.deps import get_email_sender  # noqa: E402

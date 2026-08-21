@@ -51,6 +51,8 @@ IP_HASH_PEPPER=<gerar com: openssl rand -hex 32>
 ALLOWED_ORIGINS=https://icmsfronteira.nucleodigital.cloud
 RATE_LIMIT_PER_HOUR=20
 VITE_API_BASE=https://api.icmsfronteira.nucleodigital.cloud
+INTERNAL_API_TOKEN=<gerar com: openssl rand -hex 32>
+FOLLOWUP_BUSINESS_DAYS=2
 ```
 
 **`VITE_API_BASE` é build arg, não env var comum:** o Vite grava esse valor
@@ -76,6 +78,34 @@ removido acidentalmente).
 Automática. `server/entrypoint.sh` roda `alembic upgrade head` antes de subir
 o `uvicorn` sempre que o container `api` inicia **sem** comando sobrescrito —
 que é como o Coolify chama a imagem em produção. Nada manual aqui.
+
+## 3.1 Follow-up automático de leads (cron)
+
+`POST /internal/send-followups` reenvia um e-mail de follow-up a todo lead
+com `status = "novo"` criado há `FOLLOWUP_BUSINESS_DAYS` dias úteis ou mais
+que ainda não recebeu follow-up (ver `server/README.md § Follow-up automático
+de leads`). Não roda sozinho — precisa de um agendador batendo nesse endpoint
+periodicamente.
+
+No Coolify: **Scheduled Tasks** do resource → nova tarefa rodando dentro do
+container `api`. A imagem (`python:3.12-slim`) não tem `curl`; use `python`
+(já disponível, mesmo padrão do `HEALTHCHECK` do `Dockerfile`):
+
+```
+python -c "
+import os, urllib.request
+req = urllib.request.Request(
+    'http://localhost:8000/internal/send-followups',
+    method='POST',
+    headers={'X-Internal-Token': os.environ['INTERNAL_API_TOKEN']},
+)
+urllib.request.urlopen(req, timeout=10)
+"
+```
+
+Frequência sugerida: uma vez por dia útil, de manhã. O endpoint é idempotente
+(marca `followup_sent_at` no lead) — rodar mais de uma vez no mesmo dia não
+duplica envio.
 
 ## 4. Troubleshooting — problemas reais já resolvidos
 

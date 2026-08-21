@@ -49,9 +49,28 @@ via `app.dependency_overrides`).
 | `IP_HASH_PEPPER` | segredo do hash de IP (nunca reaproveitar entre ambientes) |
 | `ALLOWED_ORIGINS` | origens liberadas no CORS, separadas por vírgula |
 | `RATE_LIMIT_PER_HOUR` | limite de submissões por `ip_hash` numa janela de 1h |
+| `INTERNAL_API_TOKEN` | token exigido no header `X-Internal-Token` pelas rotas internas (`/internal/*`); vazio = rota sempre retorna 401 |
+| `FOLLOWUP_BUSINESS_DAYS` | dias úteis após a criação do lead para disparar o follow-up (default `2`) |
 
 Nenhum segredo tem default de produção — sem `.env` preenchido a API não sobe
 (`DATABASE_URL` é obrigatório).
+
+## Follow-up automático de leads
+
+`POST /internal/send-followups` (header `X-Internal-Token: <INTERNAL_API_TOKEN>`)
+varre `demo_requests` por leads com `status = "novo"` (ninguém do time mudou o
+status), criados há pelo menos `FOLLOWUP_BUSINESS_DAYS` dias úteis, que ainda
+não têm `followup_sent_at` preenchido — envia `lead_followup` (ver
+`app/services/email/templates.py`) e marca `followup_sent_at`, o que torna a
+chamada idempotente (rodar de novo no mesmo lead não reenvia).
+
+Não há scheduler dentro do processo da API — o disparo é por um **cron
+externo** (ex.: Scheduled Task do Coolify) chamando esse endpoint
+periodicamente. Ver `../DEPLOY.md` para a configuração em produção.
+
+Atualizar o `status` do lead (ex.: para `"contatado"`) via acesso direto ao
+banco interrompe o follow-up automático para aquele lead — não existe hoje
+uma rota de API para mudar status, é operação manual no Postgres.
 
 ## Deliverability de e-mail (operação, fora do código)
 
