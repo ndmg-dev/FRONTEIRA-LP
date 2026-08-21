@@ -51,6 +51,9 @@ via `app.dependency_overrides`).
 | `RATE_LIMIT_PER_HOUR` | limite de submissões por `ip_hash` numa janela de 1h |
 | `INTERNAL_API_TOKEN` | token exigido no header `X-Internal-Token` pelas rotas internas (`/internal/*`); vazio = rota sempre retorna 401 |
 | `FOLLOWUP_BUSINESS_DAYS` | dias úteis após a criação do lead para disparar o follow-up (default `2`) |
+| `ADMIN_USERNAME` | usuário do painel administrativo (`/admin/*`); vazio = login sempre retorna 401 |
+| `ADMIN_PASSWORD_HASH` | hash bcrypt da senha do painel — gerar com `python -c "import bcrypt; print(bcrypt.hashpw(b'sua-senha', bcrypt.gensalt()).decode())"` (nunca gravar a senha em texto puro) |
+| `ADMIN_JWT_SECRET` | segredo de assinatura do token de sessão do painel — gerar com `openssl rand -hex 32` |
 
 Nenhum segredo tem default de produção — sem `.env` preenchido a API não sobe
 (`DATABASE_URL` é obrigatório).
@@ -68,9 +71,27 @@ Não há scheduler dentro do processo da API — o disparo é por um **cron
 externo** (ex.: Scheduled Task do Coolify) chamando esse endpoint
 periodicamente. Ver `../DEPLOY.md` para a configuração em produção.
 
-Atualizar o `status` do lead (ex.: para `"contatado"`) via acesso direto ao
-banco interrompe o follow-up automático para aquele lead — não existe hoje
-uma rota de API para mudar status, é operação manual no Postgres.
+Atualizar o `status` do lead (ex.: para `"contatado"`) interrompe o follow-up
+automático para aquele lead. Isso agora tem uma rota própria — ver seção
+abaixo — em vez de exigir acesso direto ao banco.
+
+## Painel administrativo (`/admin/*`)
+
+Login único (usuário/senha fixos via env, sem tabela de usuários — ver
+`ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH` acima), sessão em JWT (`ADMIN_JWT_SECRET`,
+expira em 12h). Rotas:
+
+- `POST /admin/login` — `{username, password}` → `{token}`. Rate-limitado a
+  10 tentativas/hora por `ip_hash` (mesmo limitador de `app/services/antispam.py`).
+- `GET /admin/leads?status_filter=&page=` — lista paginada (50/página),
+  requer `Authorization: Bearer <token>`.
+- `PATCH /admin/leads/{id}/status` — `{status}` (`novo`/`contatado`/`fechado`/
+  `perdido`), requer o mesmo header.
+
+O frontend consome essas rotas em `src/pages/Admin/` (rota `/admin` na SPA,
+sem router — roteamento manual em `src/main.tsx` por `pathname`, code-split
+via `React.lazy`). Token de sessão fica em `sessionStorage`, nunca em
+`localStorage`.
 
 ## Deliverability de e-mail (operação, fora do código)
 

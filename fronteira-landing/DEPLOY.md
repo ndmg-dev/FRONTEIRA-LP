@@ -53,6 +53,9 @@ RATE_LIMIT_PER_HOUR=20
 VITE_API_BASE=https://api.icmsfronteira.nucleodigital.cloud
 INTERNAL_API_TOKEN=<gerar com: openssl rand -hex 32>
 FOLLOWUP_BUSINESS_DAYS=2
+ADMIN_USERNAME=<usuário do painel /admin>
+ADMIN_PASSWORD_HASH=<hash bcrypt — ver server/README.md § Painel administrativo>
+ADMIN_JWT_SECRET=<gerar com: openssl rand -hex 32>
 ```
 
 **`VITE_API_BASE` é build arg, não env var comum:** o Vite grava esse valor
@@ -106,6 +109,15 @@ urllib.request.urlopen(req, timeout=10)
 Frequência sugerida: uma vez por dia útil, de manhã. O endpoint é idempotente
 (marca `followup_sent_at` no lead) — rodar mais de uma vez no mesmo dia não
 duplica envio.
+
+## 3.2 Painel administrativo
+
+`https://icmsfronteira.nucleodigital.cloud/admin` — ícone de cadeado discreto
+no canto superior direito da landing também leva lá. Login com
+`ADMIN_USERNAME`/senha (hash em `ADMIN_PASSWORD_HASH`, gerar conforme
+`server/README.md`); lista os leads e permite mudar status
+(novo/contatado/fechado/perdido). Ver `server/README.md § Painel
+administrativo` para detalhe das rotas.
 
 ## 4. Troubleshooting — problemas reais já resolvidos
 

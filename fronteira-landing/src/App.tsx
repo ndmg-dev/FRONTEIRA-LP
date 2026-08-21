@@ -1,6 +1,7 @@
 import { LazyMotion, domAnimation } from 'framer-motion'
 
 import { nav } from './lib/copy'
+import { AdminLink } from './components/AdminLink/AdminLink'
 import { DemoCTA } from './components/DemoCTA/DemoCTA'
 import { Differentiators } from './components/Differentiators/Differentiators'
 import { Footer } from './components/Footer/Footer'
@@ -26,6 +27,7 @@ export function App() {
         <DemoCTA />
       </main>
       <Footer />
+      <AdminLink />
     </LazyMotion>
   )
 }

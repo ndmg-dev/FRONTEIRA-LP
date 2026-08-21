@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .deps import get_settings
+from .routes.admin import router as admin_router
 from .routes.demo import router as demo_router
 from .routes.internal import router as internal_router
 from .schemas import FIELD_MESSAGES
@@ -25,12 +26,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_settings.allowed_origins_list,
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_methods=["GET", "POST", "PATCH"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 app.include_router(demo_router)
 app.include_router(internal_router)
+app.include_router(admin_router)
 
 
 @app.exception_handler(RequestValidationError)

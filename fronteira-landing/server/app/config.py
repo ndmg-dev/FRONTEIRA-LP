@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     rate_limit_per_hour: int = 20
     internal_api_token: str = ""
     followup_business_days: int = 2
+    admin_username: str = ""
+    admin_password_hash: str = ""
+    admin_jwt_secret: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import bcrypt
 import psycopg
 import pytest
 from sqlalchemy import text
@@ -43,6 +44,13 @@ os.environ.setdefault("RESEND_API_KEY", "")
 os.environ.setdefault("EMAIL_FROM", "Fronteira <contato@fronteira.test>")
 os.environ.setdefault("TEAM_INBOX", "time@fronteira.test")
 os.environ.setdefault("INTERNAL_API_TOKEN", "test-internal-token")
+os.environ.setdefault("ADMIN_USERNAME", "admin")
+ADMIN_TEST_PASSWORD = "correct-horse-battery-staple"
+os.environ.setdefault(
+    "ADMIN_PASSWORD_HASH",
+    bcrypt.hashpw(ADMIN_TEST_PASSWORD.encode("utf-8"), bcrypt.gensalt()).decode("utf-8"),
+)
+os.environ.setdefault("ADMIN_JWT_SECRET", "test-jwt-secret")
 
 from app.db import Base, SessionLocal, engine  # noqa: E402
 from app.deps import get_email_sender  # noqa: E402

@@ -1,9 +1,12 @@
 import re
+from datetime import datetime
 from typing import Annotated, Literal, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 Volume = Literal["ate-10", "11-50", "51-200", "mais-de-200"]
+LeadStatus = Literal["novo", "contatado", "fechado", "perdido"]
 
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
 
@@ -57,3 +60,40 @@ class DemoRequestIn(BaseModel):
 
 class DemoRequestOut(BaseModel):
     protocol: str
+
+
+class AdminLoginIn(BaseModel):
+    username: str
+    password: str
+
+
+class AdminLoginOut(BaseModel):
+    token: str
+
+
+class LeadOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    protocol: str
+    name: str
+    office: str
+    email: str
+    volume: Volume
+    status: str
+    referrer: Optional[str] = None
+    landing_path: Optional[str] = None
+    utm: Optional[dict[str, str]] = None
+    created_at: datetime
+    followup_sent_at: Optional[datetime] = None
+
+
+class LeadListOut(BaseModel):
+    items: list[LeadOut]
+    total: int
+    page: int
+    page_size: int
+
+
+class LeadStatusIn(BaseModel):
+    status: LeadStatus

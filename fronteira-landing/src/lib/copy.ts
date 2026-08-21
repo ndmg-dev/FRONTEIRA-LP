@@ -257,3 +257,46 @@ export const footer = {
     'Valores e telas exibidos nesta página são ilustrativos. O resultado de cada apuração depende da legislação vigente, dos dados da nota e da configuração de cada empresa. O Fronteira é uma ferramenta de apoio à apuração e não substitui o profissional responsável.',
   copyright: '© 2026 Fronteira',
 } as const
+
+export const adminLink = {
+  ariaLabel: 'Acesso administrativo',
+} as const
+
+export const adminLoginCopy = {
+  title: 'Painel administrativo',
+  subtitle: 'Acesso restrito ao time Fronteira.',
+  usernameLabel: 'Usuário',
+  passwordLabel: 'Senha',
+  submit: 'Entrar',
+  submitting: 'Entrando…',
+  backToSite: '← Voltar ao site',
+  genericError: 'Não foi possível entrar. Tente novamente.',
+} as const
+
+export const adminDashboardCopy = {
+  title: 'Leads',
+  logout: 'Sair',
+  statusFilterLabel: 'Filtrar por status',
+  statusFilterAll: 'Todos',
+  statusLabels: {
+    novo: 'Novo',
+    contatado: 'Contatado',
+    fechado: 'Fechado',
+    perdido: 'Perdido',
+  } as Record<'novo' | 'contatado' | 'fechado' | 'perdido', string>,
+  columns: {
+    createdAt: 'Data',
+    name: 'Nome',
+    office: 'Escritório',
+    email: 'E-mail',
+    volume: 'Faixa',
+    protocol: 'Protocolo',
+    status: 'Status',
+  },
+  empty: 'Nenhum lead encontrado para este filtro.',
+  loading: 'Carregando…',
+  loadError: 'Não foi possível carregar os leads.',
+  updateError: 'Não foi possível atualizar o status. Tente novamente.',
+  sessionExpired: 'Sessão expirada. Faça login novamente.',
+  pagination: { previous: '← Anterior', next: 'Próxima →', pageOf: (page: number, totalPages: number) => `Página ${page} de ${totalPages}` },
+} as const
