@@ -8,8 +8,9 @@
 #     automaticamente e sobe o uvicorn de produção
 #   - inclui o serviço `web` (frontend), que dev não precisa (roda via
 #     `npm run dev`)
-#   - sem porta do Postgres publicada no host — só acessível dentro da rede
-#     do compose
+#   - nenhum serviço publica porta no host (`ports:`) — o proxy do Coolify
+#     (Traefik) já ocupa 80/443 e roteia pelos domínios via rede interna do
+#     Docker; `expose` só declara a porta pro compose, sem bind no host
 #
 # Todas as variáveis abaixo (${...}) vêm do Coolify (aba de env vars do
 # resource). Nenhum valor default sensível aqui — sem eles definidos, o
@@ -43,8 +44,8 @@ services:
       IP_HASH_PEPPER: ${IP_HASH_PEPPER}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       RATE_LIMIT_PER_HOUR: ${RATE_LIMIT_PER_HOUR}
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     depends_on:
       db:
         condition: service_healthy
@@ -55,8 +56,8 @@ services:
       args:
         VITE_API_BASE: ${VITE_API_BASE}
     restart: unless-stopped
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - api
 
