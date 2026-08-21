@@ -1,0 +1,141 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 26px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  box-shadow: var(--shadow-card);
+}
+
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.inputWrap {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  padding: 11px 40px 11px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--ink);
+  font-size: 0.95rem;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+/* top/bottom + flex (não translateY) porque framer-motion já controla o
+   `transform` deste elemento (scale/y do resultPop) — um transform CSS
+   estático aqui seria sobrescrito pelo inline style do motion. */
+.validCheck {
+  position: absolute;
+  inset: 0 13px 0 auto;
+  display: flex;
+  align-items: center;
+  color: var(--gold);
+}
+
+.input::placeholder {
+  color: var(--ink-3);
+}
+
+.input:hover {
+  border-color: var(--gold-22);
+}
+
+.invalid {
+  border-color: var(--gold);
+}
+
+.error {
+  font-size: 0.82rem;
+  color: var(--gold-bright);
+}
+
+.submitRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.echo {
+  margin: -4px 0 0;
+  font-size: 0.86rem;
+  color: var(--gold-bright);
+}
+
+.consentField {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.consentInput {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+
+.consentLabel {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.consentLink {
+  color: var(--gold-bright);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.consentLink:hover {
+  color: var(--gold);
+}

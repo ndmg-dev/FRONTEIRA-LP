@@ -1,0 +1,127 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding-block: 16px 0;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 10px 8px 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--bg-blur-soft);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.scrolled {
+  border-color: var(--line);
+  background: var(--bg-blur-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+}
+
+.brandName {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.link {
+  position: relative;
+  padding-block: 2px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition:
+    color 0.16s ease,
+    font-weight 0.16s ease;
+}
+
+/* Sublinhado dourado que cresce da esquerda; reserva o peso 600 num pseudo-
+   elemento sobreposto para não deslocar o layout ao trocar o font-weight. */
+.link::before {
+  content: attr(data-label);
+  position: absolute;
+  inset: 0;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--gold-bright);
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -3px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  transition: right 0.25s var(--ease-out, cubic-bezier(0.22, 0.61, 0.36, 1));
+}
+
+.link:hover,
+.link:focus-visible {
+  color: transparent;
+}
+
+.link:hover::before,
+.link:focus-visible::before {
+  opacity: 1;
+}
+
+.link:hover::after,
+.link:focus-visible::after {
+  right: 0;
+}
+
+.cta {
+  padding: 9px 16px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .links {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .pill {
+    padding: 8px 8px 8px 16px;
+  }
+
+  .brandName {
+    font-size: 1rem;
+  }
+
+  .cta {
+    padding: 9px 12px;
+    font-size: 0.84rem;
+  }
+}

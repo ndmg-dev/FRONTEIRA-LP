@@ -1,0 +1,88 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.feature,
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 26px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  transition: border-color 0.2s ease;
+}
+
+.feature:hover,
+.card:hover {
+  border-color: var(--gold-40);
+}
+
+.feature {
+  /* Faixa cheia no topo: com 1 destaque + 3 cards, qualquer span parcial deixa
+     células vazias no grid de 3 colunas. */
+  grid-column: 1 / -1;
+  gap: 14px;
+  padding: 32px;
+  background: linear-gradient(160deg, var(--panel-2), var(--panel) 60%);
+  border-color: var(--gold-22);
+}
+
+.featureHead,
+.featureAside {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.featureTitle {
+  font-size: clamp(1.3rem, 1rem + 1.1vw, 1.75rem);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.featureBody {
+  max-width: 60ch;
+  font-size: 1rem;
+  color: var(--ink-2);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.body {
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+
+@media (min-width: 981px) {
+  .feature {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    column-gap: 48px;
+    align-items: start;
+  }
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .feature {
+    padding: 26px 24px;
+  }
+}

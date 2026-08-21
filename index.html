@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fronteira — apuração de ICMS-ST de fronteira e antecipação</title>
+<meta name="description" content="Suba o XML da NF-e e receba o ICMS-ST de fronteira e a antecipação calculados, com memória de cálculo aberta e conferência contra o extrato da SEFAZ.">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="icon" id="favicon" href="data:,">
+<style>
+/* ============================================================
+   TOKENS — único lugar do arquivo com literais de cor
+   ============================================================ */
+:root{
+  --bg:#0c0e12;
+  --bg-2:#101318;
+  --panel:#14181f;
+  --panel-2:#171c24;
+  --line:#232a35;
+  --line-soft:#1b212a;
+  --ink:#eceef2;
+  --ink-2:#aab2bf;
+  --ink-3:#727b89;
+  --gold:#c9a961;
+  --gold-bright:#e6c982;
+  --gold-dim:#8f7841;
+  --ok:#6fae7e;
+
+  /* variantes translúcidas derivadas (mantidas aqui para não vazar cor) */
+  --gold-a06:rgba(201,169,97,.06);
+  --gold-a10:rgba(201,169,97,.10);
+  --gold-a14:rgba(201,169,97,.14);
+  --gold-a22:rgba(201,169,97,.22);
+  --gold-a40:rgba(201,169,97,.40);
+  --gold-a00:rgba(201,169,97,0);
+  --ok-a14:rgba(111,174,126,.14);
+  --nav-bg:rgba(12,14,18,.82);
+  --shadow:rgba(0,0,0,.34);
+  --dash:rgba(35,42,53,.85);
+
+  --radius:14px;
+  --maxw:1160px;
+  --pad:24px;
+
+  --font-display:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:16px;
+  font-weight:400;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{max-width:100%}
+h1,h2,h3{
+  font-family:var(--font-display);
+  font-weight:600;
+  letter-spacing:-.02em;
+  line-height:1.08;
+  margin:0;
+}
+h1{font-size:clamp(2rem,5.2vw,3.35rem)}
+h2{font-size:clamp(1.6rem,3.6vw,2.35rem)}
+h3{font-size:1.075rem;line-height:1.25}
+p{margin:0}
+ul{margin:0;padding:0;list-style:none}
+a{color:inherit;text-decoration:none}
+
+.container{width:100%;max-width:var(--maxw);margin:0 auto;padding:0 var(--pad)}
+.section{border-top:1px solid var(--line-soft);padding:clamp(64px,9vw,104px) 0}
+.section--alt{background:var(--bg-2)}
+.section__head{max-width:64ch;margin-bottom:clamp(32px,4vw,52px)}
+.section__head h2{margin:14px 0 0}
+.section__sub{color:var(--ink-2);margin-top:16px;font-size:1.03rem}
+
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:.22em;
+  color:var(--gold);
+  margin:0;
+}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+/* foco visível global */
+:where(a,button,input,select,summary,[tabindex]):focus-visible{
+  outline:2px solid var(--gold-bright);
+  outline-offset:3px;
+  border-radius:6px;
+}
+
+.skip-link{
+  position:absolute;left:var(--pad);top:-64px;z-index:100;
+  background:var(--panel);color:var(--ink);
+  border:1px solid var(--gold-dim);border-radius:10px;
+  padding:10px 16px;font-size:.9rem;
+  transition:top .18s ease;
+}
+.skip-link:focus{top:12px}
+
+/* botões */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.55em;
+  font-family:var(--font-body);font-size:.95rem;font-weight:500;
+  padding:13px 22px;border-radius:11px;
+  border:1px solid transparent;cursor:pointer;
+  transition:transform .16s ease,background-color .16s ease,border-color .16s ease,color .16s ease;
+}
+.btn--primary{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+.btn--primary:hover{background:var(--gold-bright);border-color:var(--gold-bright);transform:translateY(-2px)}
+.btn--ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn--ghost:hover{border-color:var(--gold-dim);color:var(--gold-bright);transform:translateY(-2px)}
+.btn--sm{padding:10px 18px;font-size:.88rem}
+.btn--block{width:100%}
+
+/* cartões */
+.card{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:26px;
+  transition:transform .18s ease,border-color .18s ease;
+}
+.card:hover{transform:translateY(-3px);border-color:var(--gold-dim)}
+.card__num{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.18em;color:var(--gold);font-variant-numeric:tabular-nums}
+.card h3{margin:14px 0 10px}
+.card p{color:var(--ink-2);font-size:.95rem}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+.reveal.is-in{opacity:1;transform:none}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+  .reveal{opacity:1;transform:none}
+  .memo__row,.memo__result{opacity:1 !important;transform:none !important}
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:var(--nav-bg);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid transparent;
+  transition:border-color .2s ease;
+}
+.nav.is-scrolled{border-bottom-color:var(--line-soft)}
+.nav__inner{display:flex;align-items:center;gap:20px;height:68px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:600;letter-spacing:-.01em;font-size:1.06rem}
+.brand svg{display:block}
+.nav__links{display:flex;gap:26px;margin-left:auto}
+.nav__links a{color:var(--ink-2);font-size:.92rem;transition:color .16s ease}
+.nav__links a:hover{color:var(--ink)}
+.nav__cta{margin-left:20px}
+@media (max-width:860px){
+  .nav__links{display:none}
+  .nav__cta{margin-left:auto}
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{padding:clamp(56px,8vw,96px) 0 clamp(64px,9vw,104px)}
+.hero__grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(32px,5vw,64px);align-items:center}
+.hero h1{margin:18px 0 0}
+.hero__mark{color:var(--gold-bright);position:relative;white-space:nowrap}
+.hero__mark::after{
+  content:"";position:absolute;left:0;right:0;bottom:-.12em;height:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-a00));
+}
+.hero__lead{color:var(--ink-2);font-size:1.06rem;margin-top:22px;max-width:56ch}
+.hero__actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:38px;border-top:1px solid var(--line-soft);padding-top:26px}
+.stats dt{font-family:var(--font-mono);font-weight:600;font-size:1.02rem;color:var(--gold-bright);font-variant-numeric:tabular-nums}
+.stats dd{margin:6px 0 0;color:var(--ink-3);font-size:.82rem;line-height:1.4}
+
+/* memória de cálculo (assinatura) */
+.memo{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:0 24px 60px -30px var(--shadow);
+  overflow:hidden;
+}
+.memo__head{display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid var(--line-soft)}
+.memo__title{font-family:var(--font-display);font-size:.95rem;font-weight:600;letter-spacing:-.01em}
+.memo__dot{width:8px;height:8px;border-radius:50%;background:var(--gold);margin-left:auto;box-shadow:0 0 0 4px var(--gold-a14)}
+.memo__meta{display:flex;justify-content:space-between;gap:12px;padding:12px 22px;border-bottom:1px solid var(--line-soft);font-family:var(--font-mono);font-size:.76rem;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.memo__body{padding:8px 22px 22px}
+.memo__row{
+  display:grid;grid-template-columns:1fr auto;gap:4px 16px;
+  align-items:baseline;
+  padding:13px 0;
+  border-bottom:1px dashed var(--dash);
+  opacity:0;transform:translateY(8px);
+  animation:memoIn .5s ease forwards;
+}
+.memo__row:last-of-type{border-bottom:0}
+.memo__label{font-size:.88rem;color:var(--ink)}
+.memo__expr{grid-column:1;font-family:var(--font-mono);font-size:.74rem;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.memo__val{grid-row:1 / span 2;grid-column:2;font-family:var(--font-mono);font-size:.92rem;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.memo__val--neg{color:var(--ink-2)}
+.memo__result{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  margin-top:18px;padding:16px 18px;border-radius:11px;
+  background:var(--gold-a10);border:1px solid var(--gold-dim);
+  opacity:0;transform:translateY(8px);
+  animation:memoIn .5s ease forwards;
+}
+.memo__result span{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.memo__result strong{font-family:var(--font-mono);font-size:1.45rem;font-weight:600;color:var(--gold-bright);font-variant-numeric:tabular-nums}
+.memo__note{margin-top:14px;font-size:.76rem;color:var(--ink-3);text-align:center}
+@keyframes memoIn{to{opacity:1;transform:none}}
+
+@media (max-width:940px){
+  .hero__grid{grid-template-columns:1fr}
+}
+
+/* ============================================================
+   GRIDS DE CONTEÚDO
+   ============================================================ */
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.grid-diff{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.grid-diff .card--wide{grid-column:span 3}
+@media (max-width:940px){
+  .grid-3,.grid-4,.grid-diff{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid-diff .card--wide{grid-column:span 2}
+}
+@media (max-width:620px){
+  .grid-3,.grid-4,.grid-diff{grid-template-columns:1fr}
+  .grid-diff .card--wide{grid-column:span 1}
+  .stats{grid-template-columns:1fr;gap:14px}
+}
+
+.flow__bullets{margin-top:16px;border-top:1px solid var(--line-soft);padding-top:14px}
+.flow__bullets li{display:flex;gap:10px;color:var(--ink-2);font-size:.88rem;padding:5px 0}
+.flow__bullets li::before{content:"";flex:none;width:5px;height:5px;border-radius:50%;background:var(--gold-dim);margin-top:.62em}
+.flow__bullets code{font-family:var(--font-mono);font-size:.82em;color:var(--ink)}
+
+.tag{
+  display:inline-block;font-family:var(--font-mono);font-size:.66rem;font-weight:600;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--gold);
+  background:var(--gold-a06);border:1px solid var(--gold-a22);
+  padding:4px 10px;border-radius:999px;
+}
+.card--wide h3{font-size:1.35rem;margin-top:16px}
+.card--wide p{font-size:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chips li{
+  font-family:var(--font-mono);font-size:.74rem;color:var(--ink-2);
+  border:1px solid var(--line);border-radius:8px;padding:5px 10px;
+}
+.chips li.is-strong{color:var(--gold-bright);border-color:var(--gold-dim);background:var(--gold-a06)}
+
+.tech{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.tech > div{padding:26px;border-right:1px solid var(--line-soft)}
+.tech > div:last-child{border-right:0}
+.tech h3{font-size:1rem;margin-bottom:10px}
+.tech p{color:var(--ink-2);font-size:.9rem}
+@media (max-width:940px){
+  .tech{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tech > div{border-bottom:1px solid var(--line-soft)}
+  .tech > div:nth-child(2n){border-right:0}
+  .tech > div:nth-last-child(-n+2){border-bottom:0}
+}
+@media (max-width:620px){
+  .tech{grid-template-columns:1fr}
+  .tech > div{border-right:0;border-bottom:1px solid var(--line-soft)}
+  .tech > div:last-child{border-bottom:0}
+}
+
+/* ============================================================
+   CTA / FORMULÁRIO
+   ============================================================ */
+.cta__grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,56px);align-items:start}
+.checklist{margin-top:26px}
+.checklist li{display:flex;gap:12px;color:var(--ink-2);font-size:.96rem;padding:8px 0}
+.checklist svg{flex:none;margin-top:.25em;color:var(--gold)}
+
+.form{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);border-radius:var(--radius);padding:clamp(22px,3vw,30px);
+}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.82rem;color:var(--ink-2);margin-bottom:7px}
+.field input,.field select{
+  width:100%;
+  background:var(--bg);color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;font-family:var(--font-body);font-size:.95rem;
+  transition:border-color .16s ease;
+}
+.field select{appearance:none;cursor:pointer}
+.field input:hover,.field select:hover{border-color:var(--gold-dim)}
+.field input::placeholder{color:var(--ink-3)}
+.form__note{margin-top:14px;font-size:.8rem;color:var(--ink-3);text-align:center}
+.form__success{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:24px 8px}
+.form__success .badge{
+  width:44px;height:44px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--ok-a14);color:var(--ok);border:1px solid var(--ok);
+}
+.form__success p{color:var(--ink-2);font-size:.94rem;max-width:36ch}
+[hidden]{display:none !important}
+@media (max-width:940px){
+  .cta__grid{grid-template-columns:1fr}
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer{border-top:1px solid var(--line-soft);padding:48px 0 56px;background:var(--bg-2)}
+.footer__top{display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between}
+.footer__tagline{color:var(--ink-2);font-size:.92rem;max-width:52ch}
+.footer__links{display:flex;gap:22px;flex-wrap:wrap}
+.footer__links a{color:var(--ink-3);font-size:.88rem;transition:color .16s ease}
+.footer__links a:hover{color:var(--ink)}
+.disclaimer{
+  margin-top:30px;padding-top:22px;border-top:1px solid var(--line-soft);
+  color:var(--ink-3);font-size:.79rem;line-height:1.7;max-width:88ch;
+}
+.footer__legal{margin-top:18px;color:var(--ink-3);font-size:.79rem}
+/* ============================================================
+   TELAS MUITO ESTREITAS (~360px)
+   ============================================================ */
+@media (max-width:430px){
+  :root{--pad:18px}
+  .nav__inner{height:60px;gap:10px}
+  .brand{font-size:.98rem}
+  .nav__cta{padding:9px 13px;font-size:.8rem}
+  .hero__actions .btn{width:100%}
+  .memo__head,.memo__meta{padding-left:16px;padding-right:16px}
+  .memo__body{padding-left:16px;padding-right:16px}
+  .memo__row{grid-template-columns:1fr}
+  .memo__val{grid-row:auto;grid-column:1}
+  .memo__result strong{font-size:1.25rem}
+  .footer__links{gap:14px}
+}
+
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+
+<header class="nav" id="nav">
+  <div class="container nav__inner">
+    <a class="brand" href="#top" aria-label="Fronteira — início">
+      <svg width="26" height="26" viewBox="0 0 32 32" role="img" aria-hidden="true" focusable="false">
+        <path d="M16 2.5 28 9.5v13L16 29.5 4 22.5v-13z" fill="none" stroke="var(--gold)" stroke-width="1.8"></path>
+        <path d="M11 16.2l3.4 3.4L21.5 12" fill="none" stroke="var(--gold-bright)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      Fronteira
+    </a>
+    <nav class="nav__links" aria-label="Seções da página">
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#diferenciais">Diferenciais</a>
+      <a href="#seguranca">Segurança</a>
+    </nav>
+    <a class="btn btn--primary btn--sm nav__cta" href="#demonstracao">Solicitar demonstração</a>
+  </div>
+</header>
+
+<main id="main">
+  <span id="top"></span>
+
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="container hero__grid">
+      <div>
+        <p class="eyebrow">Apuração fiscal · ICMS-ST · Antecipação</p>
+        <h1 id="hero-title">O cálculo de fronteira que o seu cliente <span class="hero__mark">consegue auditar</span>.</h1>
+        <p class="hero__lead">Suba o XML da NF-e e receba o ICMS-ST de fronteira e a antecipação já calculados — com a memória de cálculo aberta, passo a passo, e conferência contra o extrato da SEFAZ. Feito para escritórios que apuram dezenas de empresas por competência.</p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#demonstracao">Solicitar demonstração <span aria-hidden="true">→</span></a>
+          <a class="btn btn--ghost" href="#como-funciona">Ver como funciona</a>
+        </div>
+        <dl class="stats">
+          <div>
+            <dt>3 fluxos</dt>
+            <dd>Fronteira · Lote · SEFAZ</dd>
+          </div>
+          <div>
+            <dt>Por empresa</dt>
+            <dd>Regras e memória isoladas</dd>
+          </div>
+          <div>
+            <dt>IBS / CBS</dt>
+            <dd>Já identifica nas notas</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- assinatura: memória de cálculo -->
+      <figure class="memo" style="margin:0">
+        <figcaption class="memo__head">
+          <span class="memo__title">Memória de cálculo · ICMS-ST</span>
+          <span class="memo__dot" aria-hidden="true"></span>
+        </figcaption>
+        <div class="memo__meta">
+          <span>NF-e 000.114.502</span>
+          <span>NCM 3924.90.00</span>
+        </div>
+        <div class="memo__body">
+          <div class="memo__row" style="animation-delay:.15s">
+            <span class="memo__label">Base do produto</span>
+            <span class="memo__expr">valor da mercadoria</span>
+            <span class="memo__val">R$ 1.000,00</span>
+          </div>
+          <div class="memo__row" style="animation-delay:.30s">
+            <span class="memo__label">Base ST com MVA</span>
+            <span class="memo__expr">1.000,00 × (1 + 40%)</span>
+            <span class="memo__val">R$ 1.400,00</span>
+          </div>
+          <div class="memo__row" style="animation-delay:.45s">
+            <span class="memo__label">ICMS destino</span>
+            <span class="memo__expr">1.400,00 × 18%</span>
+            <span class="memo__val">R$ 252,00</span>
+          </div>
+          <div class="memo__row" style="animation-delay:.60s">
+            <span class="memo__label">Crédito de origem</span>
+            <span class="memo__expr">1.000,00 × 12%</span>
+            <span class="memo__val memo__val--neg">− R$ 120,00</span>
+          </div>
+          <div class="memo__row" style="animation-delay:.75s">
+            <span class="memo__label">Fórmula aplicada</span>
+            <span class="memo__expr">ICMS_dest − crédito_origem</span>
+            <span class="memo__val">252,00 − 120,00</span>
+          </div>
+          <div class="memo__result" style="animation-delay:.90s">
+            <span>ICMS-ST a recolher</span>
+            <strong>R$ 132,00</strong>
+          </div>
+          <p class="memo__note">Exemplo ilustrativo. Os valores dependem da legislação vigente e da configuração de cada empresa.</p>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- PROBLEMA -->
+  <section class="section section--alt" id="problema" aria-labelledby="problema-title">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="eyebrow">O problema</p>
+        <h2 id="problema-title">A fronteira ainda é resolvida na planilha — e a planilha não se defende.</h2>
+        <p class="section__sub">Cada nota vira uma linha copiada à mão, cada MVA vira uma busca no regulamento, e quando a SEFAZ questiona, ninguém reconstrói de onde saiu o número.</p>
+      </div>
+      <div class="grid-3">
+        <article class="card reveal">
+          <p class="card__num">01</p>
+          <h3>Retrabalho por competência</h3>
+          <p>Toda apuração recomeça do zero: digitação de nota, classificação de NCM, cálculo manual. Multiplique por todas as empresas do escritório.</p>
+        </article>
+        <article class="card reveal">
+          <p class="card__num">02</p>
+          <h3>Cálculo que ninguém reconstrói</h3>
+          <p>A fórmula mora na cabeça de uma pessoa e numa célula escondida. Sem memória de cálculo, revisar ou justificar um valor vira arqueologia.</p>
+        </article>
+        <article class="card reveal">
+          <p class="card__num">03</p>
+          <h3>Divergência com a SEFAZ no fim do mês</h3>
+          <p>O confronto entre o que foi apurado e o extrato oficial acontece tarde, no susto, comparando duas planilhas linha a linha.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section class="section" id="como-funciona" aria-labelledby="como-title">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="eyebrow">Como funciona</p>
+        <h2 id="como-title">Três fluxos que cobrem a apuração de ponta a ponta.</h2>
+        <p class="section__sub">Do XML ao número recolhido, com a mesma lógica fiscal aplicada de forma consistente para todas as empresas que você atende.</p>
+      </div>
+      <div class="grid-3">
+        <article class="card reveal">
+          <p class="card__num">Fluxo 01</p>
+          <h3>Wizard de Fronteira</h3>
+          <p>Sobe o XML, confere, classifica e calcula — uma nota por vez, com o resultado detalhado.</p>
+          <ul class="flow__bullets">
+            <li>Upload → contexto → conferência → resultado</li>
+            <li>Memória de cálculo passo a passo por item</li>
+            <li>Exceções fiscais aplicadas na conferência</li>
+            <li>Exportação em XLSX e PDF</li>
+          </ul>
+        </article>
+        <article class="card reveal">
+          <p class="card__num">Fluxo 02</p>
+          <h3>Antecipação em lote</h3>
+          <p>Vários XMLs de uma vez. O sistema classifica pela memória da empresa e calcula tudo junto.</p>
+          <ul class="flow__bullets">
+            <li>Classificação automática por NCM + descrição</li>
+            <li>A memória “aprende” a cada classificação manual</li>
+            <li>Só calcula quando tudo está classificado</li>
+            <li>Resultado do lote exportável</li>
+          </ul>
+        </article>
+        <article class="card reveal">
+          <p class="card__num">Fluxo 03</p>
+          <h3>Comparação SEFAZ</h3>
+          <p>Sobe o extrato oficial e o sistema cruza com as notas apuradas, apontando as divergências.</p>
+          <ul class="flow__bullets">
+            <li>Leitura do extrato <code>.xls</code> da SEFAZ</li>
+            <li>Cruzamento por empresa e competência</li>
+            <li>Observações sobre cada divergência</li>
+            <li>Relatório de confronto exportável</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIFERENCIAIS -->
+  <section class="section section--alt" id="diferenciais" aria-labelledby="dif-title">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="eyebrow">Por que o Fronteira</p>
+        <h2 id="dif-title">Construído para quem responde por muitas empresas.</h2>
+      </div>
+      <div class="grid-diff">
+        <article class="card card--wide reveal">
+          <span class="tag">Auditável</span>
+          <h3>Todo número mostra de onde veio</h3>
+          <p>Cada item traz entradas, parâmetros, fórmula e passos do cálculo — a memória fica registrada junto ao resultado. Quando o cliente ou o fisco pergunta “por que R$ 132,00?”, a resposta está na tela, não na memória de alguém.</p>
+          <ul class="chips">
+            <li>entradas</li>
+            <li>parâmetros</li>
+            <li class="is-strong">fórmula</li>
+            <li>passos</li>
+            <li>resultado</li>
+          </ul>
+        </article>
+        <article class="card reveal">
+          <span class="tag">Multi-empresa</span>
+          <p style="margin-top:16px">Tudo é por empresa e por competência: regras de NCM/MVA, memória de classificação e histórico de apuração ficam isolados. O que vale para uma empresa não vaza para outra.</p>
+        </article>
+        <article class="card reveal">
+          <span class="tag">IBS / CBS</span>
+          <p style="margin-top:16px">O sistema já identifica os grupos de IBS e CBS nas notas e separa o que tem do que não tem — um pé dentro da transição da reforma tributária desde agora.</p>
+        </article>
+        <article class="card reveal">
+          <span class="tag">Histórico</span>
+          <p style="margin-top:16px">Consulta por empresa + competência lê direto das notas já apuradas. Reabre qualquer apuração passada em modo leitura e reexporta XLSX ou PDF sem recalcular.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- BASE TÉCNICA / SEGURANÇA -->
+  <section class="section" id="seguranca" aria-labelledby="tec-title">
+    <div class="container">
+      <div class="section__head reveal">
+        <p class="eyebrow">Base técnica</p>
+        <h2 id="tec-title">Uma arquitetura pensada para dado fiscal.</h2>
+        <p class="section__sub">A lógica de tributação é isolada do resto do sistema e coberta por testes automatizados — a parte crítica não é reescrita a cada tela nova.</p>
+      </div>
+      <div class="tech reveal">
+        <div>
+          <h3>Papéis de acesso</h3>
+          <p>Administrador, coordenador e operador — cada um vê e faz o que lhe cabe.</p>
+        </div>
+        <div>
+          <h3>Dados por empresa</h3>
+          <p>Notas, regras e apurações separadas por empresa e competência, sem cruzamento indevido.</p>
+        </div>
+        <div>
+          <h3>Motor fiscal isolado</h3>
+          <p>Os calculadores de tributação são um núcleo próprio, coberto por testes unitários.</p>
+        </div>
+        <div>
+          <h3>Exportações prontas</h3>
+          <p>XLSX e PDF em cada fluxo — do item avulso à apuração completa da competência.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA / DEMONSTRAÇÃO -->
+  <section class="section section--alt" id="demonstracao" aria-labelledby="cta-title">
+    <div class="container cta__grid">
+      <div class="reveal">
+        <p class="eyebrow">Demonstração</p>
+        <h2 id="cta-title" style="margin-top:14px">Veja o Fronteira rodando com uma nota sua.</h2>
+        <p class="section__sub">Agende uma demonstração e mostramos os três fluxos com um caso real do seu escritório — do XML ao confronto com a SEFAZ.</p>
+        <ul class="checklist">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8.4l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            Apuração de uma competência real, ponta a ponta
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8.4l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            Memória de cálculo aberta, item por item
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8.4l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            Conversa sobre volume de empresas e implantação.
+          </li>
+        </ul>
+      </div>
+
+      <div class="reveal">
+        <form class="form" id="demo-form" novalidate>
+          <div class="field">
+            <label for="nome">Nome</label>
+            <input id="nome" name="nome" type="text" autocomplete="name" placeholder="Como podemos te chamar" required>
+          </div>
+          <div class="field">
+            <label for="escritorio">Escritório</label>
+            <input id="escritorio" name="escritorio" type="text" autocomplete="organization" placeholder="Nome do escritório" required>
+          </div>
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@escritorio.com.br" required>
+          </div>
+          <div class="field">
+            <label for="empresas">Quantas empresas você apura?</label>
+            <select id="empresas" name="empresas" required>
+              <option value="ate-10">Até 10</option>
+              <option value="11-50">11–50</option>
+              <option value="51-200">51–200</option>
+              <option value="200-mais">Mais de 200</option>
+            </select>
+          </div>
+          <button class="btn btn--primary btn--block" type="submit">Solicitar demonstração</button>
+          <p class="form__note">Retornamos em até 1 dia útil. Sem compromisso.</p>
+        </form>
+
+        <div class="form form__success" id="demo-success" role="status" tabindex="-1" hidden>
+          <span class="badge" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 16 16" focusable="false"><path d="M3 8.4l3.2 3.2L13 4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+          <h3>Pedido recebido</h3>
+          <p>Entramos em contato pelo e-mail informado.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div>
+        <a class="brand" href="#top" aria-label="Fronteira — início">
+          <svg width="24" height="24" viewBox="0 0 32 32" role="img" aria-hidden="true" focusable="false">
+            <path d="M16 2.5 28 9.5v13L16 29.5 4 22.5v-13z" fill="none" stroke="var(--gold)" stroke-width="1.8"></path>
+            <path d="M11 16.2l3.4 3.4L21.5 12" fill="none" stroke="var(--gold-bright)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          Fronteira
+        </a>
+        <p class="footer__tagline" style="margin-top:12px">Apuração de fronteira, antecipação e confronto SEFAZ · para escritórios de contabilidade.</p>
+      </div>
+      <nav class="footer__links" aria-label="Rodapé">
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#diferenciais">Diferenciais</a>
+        <a href="#seguranca">Segurança</a>
+        <a href="#demonstracao">Solicitar demonstração</a>
+      </nav>
+    </div>
+    <p class="disclaimer">Valores e telas apresentados nesta página são ilustrativos. O resultado da apuração depende da legislação vigente, dos dados da nota e da configuração de cada empresa. O Fronteira é uma ferramenta de apoio à apuração e não substitui a análise do profissional responsável.</p>
+    <p class="footer__legal">© <span class="num">2026</span> Fronteira.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* favicon desenhado a partir do token --gold (sem cor hardcoded) */
+  var gold = getComputedStyle(document.documentElement).getPropertyValue("--gold").trim();
+  var glyph =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
+    '<path d="M16 2.5 28 9.5v13L16 29.5 4 22.5v-13z" fill="none" stroke="' + gold + '" stroke-width="2"/>' +
+    '<path d="M11 16.2l3.4 3.4L21.5 12" fill="none" stroke="' + gold + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>';
+  document.getElementById("favicon").href =
+    "data:image/svg+xml," + encodeURIComponent(glyph);
+
+  /* nav ganha borda ao rolar */
+  var nav = document.getElementById("nav");
+  var onScroll = function () {
+    nav.classList.toggle("is-scrolled", window.scrollY > 8);
+  };
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  /* revelação ao rolar */
+  var items = document.querySelectorAll(".reveal");
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (reduced || !("IntersectionObserver" in window)) {
+    items.forEach(function (el) { el.classList.add("is-in"); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-in");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.1 });
+    items.forEach(function (el) { io.observe(el); });
+  }
+
+  /* ---------------------------------------------------------
+     Envio do pedido de demonstração.
+     TODO: conectar (endpoint próprio / Formspree / WhatsApp).
+     Enquanto não houver destino definido, resolve localmente e
+     a confirmação é mostrada no cliente. Nenhum dado é
+     persistido no navegador.
+     --------------------------------------------------------- */
+  function submitDemoRequest(payload) {
+    // TODO: conectar (endpoint / Formspree / WhatsApp)
+    return Promise.resolve({ ok: true, payload: payload });
+  }
+
+  var form = document.getElementById("demo-form");
+  var success = document.getElementById("demo-success");
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    var data = new FormData(form);
+    var payload = {
+      nome: String(data.get("nome") || "").trim(),
+      escritorio: String(data.get("escritorio") || "").trim(),
+      email: String(data.get("email") || "").trim(),
+      empresas: String(data.get("empresas") || "")
+    };
+
+    var button = form.querySelector("button[type=submit]");
+    button.disabled = true;
+
+    submitDemoRequest(payload)
+      .then(function () {
+        form.hidden = true;
+        success.hidden = false;
+        success.focus();
+      })
+      .catch(function () {
+        button.disabled = false;
+        form.reportValidity();
+      });
+  });
+})();
+</script>
+</body>
+</html>

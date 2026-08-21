@@ -1,0 +1,28 @@
+[project]
+name = "fronteira-backend"
+version = "0.1.0"
+description = "API de solicitação de demonstração da landing Fronteira (§B do spec de backend)."
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<0.116",
+  "uvicorn[standard]>=0.30,<0.31",
+  "sqlalchemy>=2.0,<2.1",
+  "alembic>=1.13,<1.14",
+  "psycopg[binary]>=3.2,<3.3",
+  "pydantic>=2.7,<3",
+  "pydantic-settings>=2.4,<3",
+  "httpx>=0.27,<0.28",
+  "python-dotenv>=1.0,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0,<9"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  # Falso positivo cosmético do pydantic 2.13 ao processar Field(alias=...)
+  # através da camada de Body() do FastAPI — o alias funciona corretamente
+  # (coberto por test_create_demo_request_success); só aparece via HTTP.
+  "ignore:The 'validation_alias' attribute:UserWarning",
+  "ignore:The 'alias' attribute:UserWarning",
+]

@@ -1,0 +1,7 @@
+/*
+ * As três famílias (Space Grotesk / Inter / IBM Plex Mono) são carregadas fora
+ * do caminho crítico, por <link ... media="print" onload> no index.html, com
+ * `display=swap`. Um @import aqui encadearia o download depois do CSS e
+ * bloqueava a renderização — por isso este arquivo só documenta a decisão e
+ * fixa as pilhas de fallback, que vivem em tokens.css (--font-*).
+ */

@@ -1,0 +1,158 @@
+.card {
+  margin: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  box-shadow: var(--shadow-card);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--gold);
+  box-shadow: 0 0 0 4px var(--gold-14);
+  flex: none;
+}
+
+.sub {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 14px 0 6px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.76rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-3-strong);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'label value'
+    'detail value';
+  align-items: center;
+  gap: 2px 14px;
+  padding: 11px 0;
+  border-bottom: 1px dashed var(--line-soft);
+}
+
+.stepLabel {
+  grid-area: label;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.stepDetail {
+  grid-area: detail;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.73rem;
+  color: var(--ink-3-strong);
+}
+
+.stepValue {
+  grid-area: value;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.negative {
+  color: var(--ink-3-strong);
+}
+
+.result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--gold-40);
+  border-radius: var(--radius-sm);
+  background: var(--gold-10);
+}
+
+.resultLabel {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+}
+
+.resultValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gold-bright);
+}
+
+.badge {
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink-3-strong);
+}
+
+@media (max-width: 420px) {
+  .card {
+    padding: 18px 16px;
+  }
+
+  .step {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'label'
+      'detail'
+      'value';
+    gap: 3px;
+  }
+
+  .stepValue {
+    text-align: left;
+  }
+
+  .resultValue {
+    font-size: 1.3rem;
+  }
+}

@@ -1,0 +1,64 @@
+# Deploy de produção — pensado pra rodar como um único "Docker Compose"
+# resource no Coolify (ver DEPLOY.md). Orquestra os 3 serviços juntos:
+# Postgres + API (server/) + frontend (raiz).
+#
+# Diferenças em relação a server/docker-compose.yml (dev):
+#   - sem bind mount do código (a imagem já contém tudo, buildada no deploy)
+#   - sem `--reload` — o entrypoint.sh da API roda `alembic upgrade head`
+#     automaticamente e sobe o uvicorn de produção
+#   - inclui o serviço `web` (frontend), que dev não precisa (roda via
+#     `npm run dev`)
+#   - sem porta do Postgres publicada no host — só acessível dentro da rede
+#     do compose
+#
+# Todas as variáveis abaixo (${...}) vêm do Coolify (aba de env vars do
+# resource). Nenhum valor default sensível aqui — sem eles definidos, o
+# deploy falha alto e cedo, não silenciosamente com valor errado.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - fronteira_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./server
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
+      TEAM_INBOX: ${TEAM_INBOX}
+      IP_HASH_PEPPER: ${IP_HASH_PEPPER}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      RATE_LIMIT_PER_HOUR: ${RATE_LIMIT_PER_HOUR}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      args:
+        VITE_API_BASE: ${VITE_API_BASE}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  fronteira_db_data:

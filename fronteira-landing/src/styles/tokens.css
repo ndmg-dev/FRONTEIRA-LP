@@ -1,0 +1,73 @@
+/*
+ * Tokens do Fronteira — ÚNICO arquivo do projeto com valores hex/rgba.
+ *
+ * Camada 1: vars `--mg-color-*` do design system @mg (tema dark). Quando o
+ * `tokens.css` gerado do pacote `@mg/tokens` estiver disponível, substituir os
+ * valores desta camada pelo arquivo oficial — os aliases da camada 2 seguem
+ * funcionando sem tocar em nenhum componente.
+ * Camada 2: aliases locais consumidos pelos CSS Modules (§5 do spec).
+ */
+
+:root {
+  /* --- camada 1: @mg (fallback documentado, §5) --- */
+  --mg-color-bg: #0c0e12;
+  --mg-color-bg-2: #101318;
+  --mg-color-panel: #14181f;
+  --mg-color-panel-2: #171c24;
+  --mg-color-line: #232a35;
+  --mg-color-line-soft: #1b212a;
+  --mg-color-ink: #eceef2;
+  --mg-color-ink-2: #aab2bf;
+  --mg-color-ink-3: #727b89;
+  /* Variante de --ink-3 para TEXTO pequeno: #727b89 fica em 4.0–4.35:1 sobre
+     --panel/--bg-2 e reprova no AA da §3. Este valor mantém o mesmo papel
+     visual passando de 4.5:1 em todos os fundos. --ink-3 segue para uso
+     decorativo (placeholders, traços, marcadores). */
+  --mg-color-ink-3-strong: #8a93a1;
+  --mg-color-gold: #c9a961;
+  --mg-color-gold-bright: #e6c982;
+  --mg-color-gold-dim: #8f7841;
+  --mg-color-ok: #6fae7e;
+
+  /* --- camada 2: aliases locais --- */
+  --bg: var(--mg-color-bg);
+  --bg-2: var(--mg-color-bg-2);
+  --panel: var(--mg-color-panel);
+  --panel-2: var(--mg-color-panel-2);
+  --line: var(--mg-color-line);
+  --line-soft: var(--mg-color-line-soft);
+  --ink: var(--mg-color-ink);
+  --ink-2: var(--mg-color-ink-2);
+  --ink-3: var(--mg-color-ink-3);
+  --ink-3-strong: var(--mg-color-ink-3-strong);
+  --gold: var(--mg-color-gold);
+  --gold-bright: var(--mg-color-gold-bright);
+  --gold-dim: var(--mg-color-gold-dim);
+  --ok: var(--mg-color-ok);
+
+  /* translúcidos derivados do dourado (§5) */
+  --gold-06: rgba(201, 169, 97, 0.06);
+  --gold-10: rgba(201, 169, 97, 0.1);
+  --gold-14: rgba(201, 169, 97, 0.14);
+  --gold-22: rgba(201, 169, 97, 0.22);
+  --gold-40: rgba(201, 169, 97, 0.4);
+
+  /* fundos translúcidos neutros */
+  --bg-blur: rgba(12, 14, 18, 0.72);
+  /* Fundo do menu pílula: mais translúcido que --bg-blur para deixar o hero
+     por trás visível quando a página está no topo. */
+  --bg-blur-soft: rgba(12, 14, 18, 0.45);
+  --bg-blur-strong: rgba(16, 19, 24, 0.86);
+  --shadow-card: 0 18px 40px rgba(0, 0, 0, 0.32);
+
+  /* forma e medida */
+  --radius: 14px;
+  --radius-sm: 10px;
+  --maxw: 1160px;
+  --gutter: 24px;
+
+  /* tipografia */
+  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+}
