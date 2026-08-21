@@ -23,5 +23,10 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
+# 127.0.0.1, não "localhost": dentro do container o nginx só escuta em
+# 0.0.0.0:80 (IPv4); "localhost" pode resolver primeiro para ::1 (IPv6) via
+# /etc/hosts, e o wget do Alpine não cai pra IPv4 sozinho — o healthcheck
+# falhava sempre, o container ficava "unhealthy" e o proxy parava de rotear
+# pra ele ("no available server").
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost/ || exit 1
+  CMD wget -qO- http://127.0.0.1/ || exit 1
