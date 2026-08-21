@@ -52,7 +52,7 @@ via `app.dependency_overrides`).
 | `INTERNAL_API_TOKEN` | token exigido no header `X-Internal-Token` pelas rotas internas (`/internal/*`); vazio = rota sempre retorna 401 |
 | `FOLLOWUP_BUSINESS_DAYS` | dias úteis após a criação do lead para disparar o follow-up (default `2`) |
 | `ADMIN_USERNAME` | usuário do painel administrativo (`/admin/*`); vazio = login sempre retorna 401 |
-| `ADMIN_PASSWORD_HASH` | hash bcrypt da senha do painel — gerar com `python -c "import bcrypt; print(bcrypt.hashpw(b'sua-senha', bcrypt.gensalt()).decode())"` (nunca gravar a senha em texto puro) |
+| `ADMIN_PASSWORD_HASH` | hash bcrypt da senha do painel — gerar com `python -c "import bcrypt; print(bcrypt.hashpw(b'sua-senha', bcrypt.gensalt()).decode())"` (nunca gravar a senha em texto puro). Se o editor de env vars da plataforma de deploy corromper o `$` do hash (visto no Coolify — hash chegava truncado no container), cadastre em base64 em vez do valor bruto: `python -c "import base64; print(base64.b64encode(b'HASH_AQUI').decode())"` — `app/config.py` detecta e decodifica automaticamente |
 | `ADMIN_JWT_SECRET` | segredo de assinatura do token de sessão do painel — gerar com `openssl rand -hex 32` |
 
 Nenhum segredo tem default de produção — sem `.env` preenchido a API não sobe
