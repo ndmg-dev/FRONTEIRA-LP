@@ -303,6 +303,17 @@ export const footer = {
   disclaimer:
     'Valores e telas exibidos nesta página são ilustrativos. O resultado de cada apuração depende da legislação vigente, dos dados da nota e da configuração de cada empresa. O Fronteira é uma ferramenta de apoio à apuração e não substitui o profissional responsável.',
   copyright: '© 2026 Fronteira',
+  // TODO: número de WhatsApp e handle de Instagram são placeholders — trocar
+  // pelos reais da Núcleo Digital antes de divulgar a página.
+  contact: {
+    label: 'Fale com a gente',
+    whatsapp: { href: 'https://wa.me/5500000000000', label: 'WhatsApp' },
+    instagram: { href: 'https://instagram.com/nucleodigital', label: 'Instagram' },
+    email: {
+      href: 'mailto:nucleodigitalmendoncagalvao@gmail.com',
+      label: 'E-mail',
+    },
+  },
 } as const
 
 export const adminLink = {

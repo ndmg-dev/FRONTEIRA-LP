@@ -36,6 +36,45 @@
   color: var(--ink-2);
 }
 
+.contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.contactLabel {
+  font-size: 0.82rem;
+  color: var(--ink-3-strong);
+}
+
+.contactLinks {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.contactLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.contactLink:hover {
+  color: var(--gold);
+  border-color: var(--gold-22);
+  background-color: var(--gold-06);
+}
+
 .links {
   display: flex;
   flex-wrap: wrap;
