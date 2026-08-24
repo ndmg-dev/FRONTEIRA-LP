@@ -1,5 +1,5 @@
 import { m, useReducedMotion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 
 import { checkDraw, submitButtonMachine, submitLabelFade } from '../../lib/motion'
 import styles from './SubmitButton.module.css'
@@ -20,40 +20,41 @@ type Props = {
  */
 export function SubmitButton({ state, idleLabel, loadingLabel }: Props) {
   const reduced = useReducedMotion() ?? false
-  const labelRef = useRef<HTMLSpanElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const [idleWidth, setIdleWidth] = useState<number | null>(null)
 
-  useEffect(() => {
-    if (labelRef.current && idleWidth === null) {
-      // padding lateral do botão (ver .button) somado à largura natural do rótulo
-      setIdleWidth(labelRef.current.offsetWidth + 40)
+  useLayoutEffect(() => {
+    // Largura ociosa = largura do botão enquanto ocupa 100% do form via CSS
+    // (.full) — medida uma vez antes do primeiro paint, depois disso o
+    // framer-motion assume o controle da largura (idle → compacto no envio).
+    if (buttonRef.current && idleWidth === null) {
+      setIdleWidth(buttonRef.current.offsetWidth)
     }
   }, [idleWidth])
 
   const machine = submitButtonMachine(reduced, idleWidth ?? 220)
+  // Antes de medir, nenhuma prop de motion controla a largura — a classe
+  // .full (width: 100%) manda, o que evita o efeito sanfona de nascer com
+  // 220px fixo e só depois esticar para o tamanho real do form.
+  const motionProps = idleWidth !== null ? { variants: machine, initial: 'idle', animate: state } : {}
 
   return (
     <m.button
+      ref={buttonRef}
       type="submit"
       className={[
         styles.button,
+        idleWidth === null ? styles.full : '',
         state !== 'idle' ? styles.compact : '',
         state === 'loading' ? styles.pulsing : '',
       ]
         .filter(Boolean)
         .join(' ')}
-      variants={machine}
-      initial="idle"
-      animate={state}
+      {...motionProps}
       disabled={state !== 'idle'}
       aria-live="polite"
     >
-      <m.span
-        className={styles.label}
-        ref={labelRef}
-        variants={submitLabelFade(reduced)}
-        animate={state}
-      >
+      <m.span className={styles.label} variants={submitLabelFade(reduced)} animate={state}>
         {idleLabel}
       </m.span>
 

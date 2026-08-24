@@ -1,8 +1,8 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 26px 24px;
+  gap: 22px;
+  padding: 30px 28px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
@@ -21,22 +21,66 @@
   border: 0;
 }
 
+/* Cabeçalho do card — mesma linguagem do `.head` de CalcMemory: título +
+   marcador dourado, separado do corpo por uma régua. */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.headDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--gold);
+  box-shadow: 0 0 0 4px var(--gold-14);
+  flex: none;
+}
+
+.headTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.srOnlyLegend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .fieldset {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   margin: 0;
   padding: 0;
   border: 0;
 }
 
-.legend {
-  padding: 0;
-  margin-bottom: 6px;
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ink);
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 .field {
@@ -96,10 +140,19 @@
   color: var(--gold-bright);
 }
 
+/* Bloco final do card: consentimento + botão, separado dos campos por uma
+   régua — a mesma ideia de hierarquia do `.head`, fechando o formulário. */
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-soft);
+}
+
 .submitRow {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 10px;
 }
 
@@ -138,4 +191,11 @@
 
 .consentLink:hover {
   color: var(--gold);
+}
+
+@media (max-width: 420px) {
+  .form {
+    padding: 22px 18px;
+    gap: 18px;
+  }
 }

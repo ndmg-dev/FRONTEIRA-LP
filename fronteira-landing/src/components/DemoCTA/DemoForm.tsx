@@ -207,33 +207,41 @@ export function DemoForm() {
         />
       </div>
 
-      <fieldset className={styles.fieldset}>
-        <legend className={styles.legend}>{demoForm.legend}</legend>
+      <div className={styles.head}>
+        <h3 className={styles.headTitle}>{demoForm.legend}</h3>
+        <span className={styles.headDot} aria-hidden="true" />
+      </div>
 
-        <FormField
-          id="demo-name"
-          label={demoForm.fields.name.label}
-          placeholder={demoForm.fields.name.placeholder}
-          value={values.name}
-          error={shown('name')}
-          valid={touched.name && !fieldError('name', values, consent)}
-          shakeToken={shakeTokens.name}
-          autoComplete="name"
-          onChange={(v) => update('name', v)}
-          onBlur={() => handleBlur('name')}
-        />
-        <FormField
-          id="demo-office"
-          label={demoForm.fields.office.label}
-          placeholder={demoForm.fields.office.placeholder}
-          value={values.office}
-          error={shown('office')}
-          valid={touched.office && !fieldError('office', values, consent)}
-          shakeToken={shakeTokens.office}
-          autoComplete="organization"
-          onChange={(v) => update('office', v)}
-          onBlur={() => handleBlur('office')}
-        />
+      <fieldset className={styles.fieldset}>
+        <legend className={styles.srOnlyLegend}>{demoForm.legend}</legend>
+
+        <div className={styles.row}>
+          <FormField
+            id="demo-name"
+            label={demoForm.fields.name.label}
+            placeholder={demoForm.fields.name.placeholder}
+            value={values.name}
+            error={shown('name')}
+            valid={touched.name && !fieldError('name', values, consent)}
+            shakeToken={shakeTokens.name}
+            autoComplete="name"
+            onChange={(v) => update('name', v)}
+            onBlur={() => handleBlur('name')}
+          />
+          <FormField
+            id="demo-office"
+            label={demoForm.fields.office.label}
+            placeholder={demoForm.fields.office.placeholder}
+            value={values.office}
+            error={shown('office')}
+            valid={touched.office && !fieldError('office', values, consent)}
+            shakeToken={shakeTokens.office}
+            autoComplete="organization"
+            onChange={(v) => update('office', v)}
+            onBlur={() => handleBlur('office')}
+          />
+        </div>
+
         <FormField
           id="demo-email"
           type="email"
@@ -273,43 +281,45 @@ export function DemoForm() {
         </AnimatePresence>
       </fieldset>
 
-      <div className={styles.consentField}>
-        <input
-          className={styles.consentInput}
-          id="demo-consent"
-          type="checkbox"
-          checked={consent}
-          aria-invalid={Boolean(shown('consent'))}
-          aria-describedby={shown('consent') ? 'demo-consent-error' : undefined}
-          onChange={(event) => handleConsentChange(event.target.checked)}
-          onBlur={() => handleBlur('consent')}
-        />
-        <label className={styles.consentLabel} htmlFor="demo-consent">
-          {demoForm.consent.label}{' '}
-          <a className={styles.consentLink} href={demoForm.consent.href}>
-            {demoForm.consent.linkLabel}
-          </a>{' '}
-          {demoForm.consent.suffix}
-        </label>
-      </div>
-      {shown('consent') ? (
-        <p className={styles.error} id="demo-consent-error" role="alert">
-          {shown('consent')}
-        </p>
-      ) : null}
+      <div className={styles.footer}>
+        <div className={styles.consentField}>
+          <input
+            className={styles.consentInput}
+            id="demo-consent"
+            type="checkbox"
+            checked={consent}
+            aria-invalid={Boolean(shown('consent'))}
+            aria-describedby={shown('consent') ? 'demo-consent-error' : undefined}
+            onChange={(event) => handleConsentChange(event.target.checked)}
+            onBlur={() => handleBlur('consent')}
+          />
+          <label className={styles.consentLabel} htmlFor="demo-consent">
+            {demoForm.consent.label}{' '}
+            <a className={styles.consentLink} href={demoForm.consent.href}>
+              {demoForm.consent.linkLabel}
+            </a>{' '}
+            {demoForm.consent.suffix}
+          </label>
+        </div>
+        {shown('consent') ? (
+          <p className={styles.error} id="demo-consent-error" role="alert">
+            {shown('consent')}
+          </p>
+        ) : null}
 
-      {submitError ? (
-        <p className={styles.error} role="alert">
-          {submitError}
-        </p>
-      ) : null}
+        {submitError ? (
+          <p className={styles.error} role="alert">
+            {submitError}
+          </p>
+        ) : null}
 
-      <div className={styles.submitRow}>
-        <SubmitButton
-          state={submitState}
-          idleLabel={demoForm.submit}
-          loadingLabel={demoForm.submitting}
-        />
+        <div className={styles.submitRow}>
+          <SubmitButton
+            state={submitState}
+            idleLabel={demoForm.submit}
+            loadingLabel={demoForm.submitting}
+          />
+        </div>
       </div>
     </form>
   )

@@ -19,6 +19,10 @@
   cursor: progress;
 }
 
+.full {
+  width: 100%;
+}
+
 .compact {
   padding-inline: 0;
 }
