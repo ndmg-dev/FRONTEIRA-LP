@@ -1,0 +1,156 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+.header {
+  padding: 20px var(--gutter);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.headerInner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--ink-3-strong);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--gold);
+}
+
+.body {
+  flex: 1;
+  padding: 48px var(--gutter) 64px;
+}
+
+.article {
+  max-width: 68ch;
+  margin: 0 auto;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.1rem);
+  margin: 24px 0 8px;
+}
+
+.updatedAt {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-3-strong);
+  margin: 0 0 28px;
+}
+
+.intro {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+}
+
+.controllerNotice {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink);
+  padding: 14px 16px;
+  border: 1px solid var(--gold-40);
+  border-radius: var(--radius-sm);
+  background: var(--gold-10);
+  margin: 0 0 40px;
+}
+
+.section {
+  padding-top: 28px;
+  margin-top: 28px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.section:first-of-type {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: 0;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+
+.paragraph {
+  font-size: 0.94rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+  margin: 0 0 12px;
+}
+
+.paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bullet {
+  position: relative;
+  padding-left: 18px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.bullet::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--gold-dim);
+}
+
+.contact {
+  padding-top: 28px;
+  margin-top: 28px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 0.94rem;
+  color: var(--ink-2);
+}
+
+.contactEmail {
+  color: var(--gold-bright);
+}
+
+.contactEmail:hover {
+  color: var(--gold);
+}
+
+.footer {
+  border-top: 1px solid var(--line-soft);
+  padding: 20px var(--gutter);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--ink-3-strong);
+}

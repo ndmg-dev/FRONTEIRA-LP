@@ -11,6 +11,8 @@ export type DiffItem = { tag: string; body: string }
 export type TechItem = { title: string; body: string }
 export type CalcStep = { label: string; detail: string; value: string; negative?: boolean }
 export type VolumeOption = { value: 'ate-10' | '11-50' | '51-200' | 'mais-de-200'; label: string }
+export type FaqItem = { id: string; question: string; answer: string }
+export type PrivacySection = { heading: string; paragraphs: string[]; bullets?: string[] }
 
 export const brand = {
   name: 'Fronteira',
@@ -22,6 +24,7 @@ export const nav = {
     { label: 'Como funciona', href: '#como-funciona' },
     { label: 'Diferenciais', href: '#diferenciais' },
     { label: 'Segurança', href: '#base-tecnica' },
+    { label: 'Perguntas', href: '#faq' },
   ] as NavLink[],
   cta: 'Solicitar demonstração',
   skipLink: 'Pular para o conteúdo',
@@ -177,6 +180,49 @@ export const techBase = {
   ] as TechItem[],
 } as const
 
+export const faq = {
+  eyebrow: 'Perguntas frequentes',
+  title: 'Antes de agendar, as dúvidas mais comuns.',
+  items: [
+    {
+      id: 'responsavel',
+      question: 'O Fronteira substitui o profissional responsável pela apuração?',
+      answer:
+        'Não. O Fronteira é uma ferramenta de apoio à apuração — calcula e documenta a memória de cálculo, mas a responsabilidade final pela apuração continua sendo do profissional do escritório.',
+    },
+    {
+      id: 'homologacao',
+      question: 'O cálculo é homologado pela SEFAZ?',
+      answer:
+        'Não. O produto é testado internamente, mas não passou por homologação fiscal formal. Por isso a memória de cálculo fica sempre visível, passo a passo — para você conferir e assumir o resultado com segurança, não para confiar cegamente nele.',
+    },
+    {
+      id: 'volume',
+      question: 'Funciona para quantas empresas?',
+      answer:
+        'O sistema separa regras, memória de classificação e histórico por empresa e por competência — de um punhado a centenas de empresas por escritório. Na demonstração, conversamos sobre o volume específico do seu caso.',
+    },
+    {
+      id: 'demonstracao',
+      question: 'Como funciona a demonstração?',
+      answer:
+        'Mostramos os três fluxos — Wizard de Fronteira, Antecipação em lote e Comparação SEFAZ — com um XML real do seu escritório, não com um exemplo genérico. Retornamos em até 1 dia útil, sem compromisso.',
+    },
+    {
+      id: 'reforma',
+      question: 'O sistema já contempla a reforma tributária (IBS/CBS)?',
+      answer:
+        'Sim. O Fronteira já identifica os grupos de IBS e CBS nas notas, separando o que já está na nova sistemática do que ainda segue as regras atuais.',
+    },
+    {
+      id: 'dados',
+      question: 'Meus dados e os dos meus clientes ficam seguros?',
+      answer:
+        'Sim — dados de apuração ficam isolados por empresa e por competência, sem cruzamento indevido. Para saber como tratamos os dados da sua solicitação de demonstração, veja a Política de Privacidade no rodapé desta página.',
+    },
+  ] as FaqItem[],
+} as const
+
 export const demoCta = {
   eyebrow: 'Demonstração',
   title: 'Veja o Fronteira rodando com uma nota sua.',
@@ -226,8 +272,7 @@ export const demoForm = {
   consent: {
     label: 'Li e aceito a',
     linkLabel: 'Política de Privacidade',
-    // TODO: apontar para a URL real quando a página de privacidade existir.
-    href: '#',
+    href: '/privacidade',
     suffix: 'e autorizo o contato do time Fronteira sobre esta solicitação.',
   },
   confirmation: {
@@ -251,7 +296,9 @@ export const footer = {
     { label: 'Como funciona', href: '#como-funciona' },
     { label: 'Diferenciais', href: '#diferenciais' },
     { label: 'Segurança', href: '#base-tecnica' },
+    { label: 'Perguntas', href: '#faq' },
     { label: 'Solicitar demonstração', href: '#demonstracao' },
+    { label: 'Política de Privacidade', href: '/privacidade' },
   ] as NavLink[],
   disclaimer:
     'Valores e telas exibidos nesta página são ilustrativos. O resultado de cada apuração depende da legislação vigente, dos dados da nota e da configuração de cada empresa. O Fronteira é uma ferramenta de apoio à apuração e não substitui o profissional responsável.',
@@ -299,4 +346,77 @@ export const adminDashboardCopy = {
   updateError: 'Não foi possível atualizar o status. Tente novamente.',
   sessionExpired: 'Sessão expirada. Faça login novamente.',
   pagination: { previous: '← Anterior', next: 'Próxima →', pageOf: (page: number, totalPages: number) => `Página ${page} de ${totalPages}` },
+} as const
+
+export const privacyPolicy = {
+  title: 'Política de Privacidade',
+  updatedAt: 'Última atualização: 24 de agosto de 2026.',
+  backLink: '← Voltar ao site',
+  intro:
+    'Esta página explica quais dados o Fronteira coleta através do formulário de solicitação de demonstração deste site, para que servem e quais direitos você tem sobre eles, nos termos da Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD).',
+  controllerNotice:
+    '[RAZÃO SOCIAL A PREENCHER], inscrita no CNPJ [00.000.000/0000-00], é a controladora dos dados tratados através deste site.',
+  sections: [
+    {
+      heading: '1. Quais dados coletamos',
+      paragraphs: [
+        'Coletamos apenas os dados que você mesmo informa ao preencher o formulário de solicitação de demonstração, mais alguns metadados técnicos coletados automaticamente para segurança e para entender de onde vêm os pedidos:',
+      ],
+      bullets: [
+        'Nome, nome do escritório, e-mail e faixa de empresas atendidas — informados por você no formulário.',
+        'Origem da visita (UTM, referrer e página de origem), quando presentes na URL.',
+        'Endereço IP — nunca armazenado em texto puro: é transformado por hash criptográfico (SHA-256 com segredo) antes de ser gravado, exclusivamente para limitar tentativas abusivas de envio (rate-limit) e evitar duplicidade.',
+      ],
+    },
+    {
+      heading: '2. Para que usamos esses dados',
+      paragraphs: [
+        'Usamos os dados do formulário para: (a) responder à sua solicitação de demonstração e entrar em contato pelo time comercial; (b) enviar um e-mail de acompanhamento caso não tenhamos conseguido falar com você em alguns dias úteis; e (c) prevenir abuso do formulário (envios automatizados, spam, tentativas de sobrecarga).',
+        'Não usamos os dados do formulário para nenhuma outra finalidade, não fazemos publicidade direcionada com eles e não os vendemos.',
+      ],
+    },
+    {
+      heading: '3. Base legal',
+      paragraphs: [
+        'O tratamento dos dados de contato (nome, escritório, e-mail, faixa de empresas) tem como base o seu consentimento, dado explicitamente ao marcar a caixa de aceite no formulário (art. 7º, I, da LGPD).',
+        'O tratamento do IP com hash tem como base o legítimo interesse do Fronteira em manter a segurança do formulário e prevenir abuso (art. 7º, IX, da LGPD) — nunca é usado para identificar você.',
+      ],
+    },
+    {
+      heading: '4. Com quem compartilhamos',
+      paragraphs: [
+        'Usamos provedores terceiros para operar o serviço: um provedor de envio de e-mail transacional (para a confirmação automática e o e-mail de acompanhamento) e um provedor de hospedagem em nuvem (para armazenar os dados e rodar o site). Esses provedores têm acesso aos dados apenas na medida necessária para prestar esses serviços, sob obrigação contratual de confidencialidade.',
+        'Não compartilhamos seus dados com terceiros para fins de marketing ou publicidade.',
+      ],
+    },
+    {
+      heading: '5. Por quanto tempo guardamos',
+      paragraphs: [
+        'Guardamos os dados da sua solicitação enquanto forem necessários para a finalidade de contato comercial e enquanto você não solicitar a exclusão. Hoje não temos uma rotina automática de expurgo de dados antigos — se quiser que seus dados sejam removidos antes disso, é só pedir pelo canal de contato abaixo.',
+      ],
+    },
+    {
+      heading: '6. Cookies e rastreamento',
+      paragraphs: [
+        'Este site não usa cookies de rastreamento nem ferramentas de analytics de terceiros. Se isso mudar no futuro, esta política será atualizada antes da mudança entrar em vigor.',
+      ],
+    },
+    {
+      heading: '7. Seus direitos',
+      paragraphs: [
+        'Nos termos do art. 18 da LGPD, você pode solicitar, a qualquer momento: confirmação de que tratamos seus dados, acesso a eles, correção de dados incompletos ou desatualizados, exclusão, portabilidade, e revogação do consentimento dado no formulário.',
+        'Para exercer qualquer um desses direitos, escreva para o e-mail no final desta página. Respondemos em até 15 dias.',
+      ],
+    },
+    {
+      heading: '8. Alterações nesta política',
+      paragraphs: [
+        'Podemos atualizar esta política eventualmente. Mudanças relevantes serão indicadas pela data no topo da página.',
+      ],
+    },
+  ] as PrivacySection[],
+  contact: {
+    label: 'Dúvidas sobre esta política ou sobre seus dados:',
+    email: 'nucleodigitalmendoncagalvao@gmail.com',
+  },
 } as const

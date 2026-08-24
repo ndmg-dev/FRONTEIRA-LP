@@ -4,6 +4,7 @@ import { nav } from './lib/copy'
 import { AdminLink } from './components/AdminLink/AdminLink'
 import { DemoCTA } from './components/DemoCTA/DemoCTA'
 import { Differentiators } from './components/Differentiators/Differentiators'
+import { Faq } from './components/Faq/Faq'
 import { Footer } from './components/Footer/Footer'
 import { Hero } from './components/Hero/Hero'
 import { HowItWorks } from './components/HowItWorks/HowItWorks'
@@ -24,6 +25,7 @@ export function App() {
         <HowItWorks />
         <Differentiators />
         <TechBase />
+        <Faq />
         <DemoCTA />
       </main>
       <Footer />
