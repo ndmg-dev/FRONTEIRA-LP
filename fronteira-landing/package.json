@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/check-placeholders.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
