@@ -117,3 +117,46 @@ def test_update_lead_status_404_for_unknown_id(client):
         headers={"Authorization": f"Bearer {token}"},
     )
     assert res.status_code == 404
+
+
+def test_resend_followup_sends_email_and_marks_sent(client, fake_email_sender, db_session):
+    row = _create_row(db_session, status="novo")
+    token = _login(client)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    res = client.post(f"/admin/leads/{row.id}/resend-followup", headers=headers)
+    assert res.status_code == 200
+    assert res.json()["followup_sent_at"] is not None
+
+    assert len(fake_email_sender.sent) == 1
+    assert fake_email_sender.sent[0]["to"] == row.email
+
+    db_session.refresh(row)
+    assert row.followup_sent_at is not None
+
+
+def test_resend_followup_ignores_status_and_timing(client, fake_email_sender, db_session):
+    # status "fechado" e lead recém-criado — o cron automático nunca pegaria
+    # esse lead, mas o disparo manual deve funcionar de qualquer forma.
+    row = _create_row(db_session, status="fechado")
+    token = _login(client)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    res = client.post(f"/admin/leads/{row.id}/resend-followup", headers=headers)
+    assert res.status_code == 200
+    assert len(fake_email_sender.sent) == 1
+
+
+def test_resend_followup_requires_auth(client, db_session):
+    row = _create_row(db_session, status="novo")
+    res = client.post(f"/admin/leads/{row.id}/resend-followup")
+    assert res.status_code == 401
+
+
+def test_resend_followup_404_for_unknown_id(client):
+    token = _login(client)
+    res = client.post(
+        "/admin/leads/00000000-0000-0000-0000-000000000000/resend-followup",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 404

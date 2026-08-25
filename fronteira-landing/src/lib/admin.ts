@@ -139,3 +139,9 @@ export async function updateLeadStatus(id: string, status: LeadStatus): Promise<
   if (!res.ok) throw new AdminApiError()
   return fromApi((await res.json()) as LeadApiShape)
 }
+
+export async function resendFollowup(id: string): Promise<Lead> {
+  const res = await authedFetch(`/admin/leads/${id}/resend-followup`, { method: 'POST' })
+  if (!res.ok) throw new AdminApiError()
+  return fromApi((await res.json()) as LeadApiShape)
+}

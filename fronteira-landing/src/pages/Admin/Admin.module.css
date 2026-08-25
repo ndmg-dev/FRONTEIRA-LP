@@ -182,7 +182,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 760px;
+  min-width: 1080px;
 }
 
 .table th {
@@ -220,6 +220,28 @@
   color: var(--ink);
   font-size: 12px;
   font-family: inherit;
+}
+
+.resendButton {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.resendButton:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.resendButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 .emptyState,

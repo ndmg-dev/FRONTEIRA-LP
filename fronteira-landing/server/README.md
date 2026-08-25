@@ -87,11 +87,16 @@ expira em 12h). Rotas:
   requer `Authorization: Bearer <token>`.
 - `PATCH /admin/leads/{id}/status` — `{status}` (`novo`/`contatado`/`fechado`/
   `perdido`), requer o mesmo header.
+- `POST /admin/leads/{id}/resend-followup` — dispara manualmente o mesmo
+  e-mail de `lead_followup` usado pelo cron (`/internal/send-followups`),
+  sem checar status nem os dias úteis mínimos — é uma decisão explícita do
+  time, então ignora as regras automáticas. Marca `followup_sent_at`.
 
 O frontend consome essas rotas em `src/pages/Admin/` (rota `/admin` na SPA,
 sem router — roteamento manual em `src/main.tsx` por `pathname`, code-split
 via `React.lazy`). Token de sessão fica em `sessionStorage`, nunca em
-`localStorage`.
+`localStorage`. O Dashboard mostra origem (UTM/referrer), data do último
+follow-up e um botão de reenvio manual por lead.
 
 ## Deliverability de e-mail (operação, fora do código)
 

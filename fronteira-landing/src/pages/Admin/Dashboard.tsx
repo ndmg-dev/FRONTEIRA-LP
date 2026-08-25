@@ -4,6 +4,7 @@ import {
   AdminAuthError,
   clearAdminToken,
   fetchLeads,
+  resendFollowup,
   updateLeadStatus,
   type Lead,
   type LeadStatus,
@@ -17,6 +18,20 @@ type Props = {
   onSessionExpired: () => void
 }
 
+/** UTM source, ou o domínio do referrer, ou "—" — o que der pra identificar
+ * de onde o lead veio sem precisar abrir o registro completo. */
+function originLabel(lead: Lead): string {
+  if (lead.utm?.source) return lead.utm.source
+  if (lead.referrer) {
+    try {
+      return new URL(lead.referrer).hostname
+    } catch {
+      return lead.referrer
+    }
+  }
+  return copy.originUnknown
+}
+
 export function Dashboard({ onSessionExpired }: Props) {
   const [leads, setLeads] = useState<Lead[]>([])
   const [total, setTotal] = useState(0)
@@ -25,6 +40,7 @@ export function Dashboard({ onSessionExpired }: Props) {
   const [statusFilter, setStatusFilter] = useState<LeadStatus | ''>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [resendingId, setResendingId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -67,6 +83,22 @@ export function Dashboard({ onSessionExpired }: Props) {
         return
       }
       setError(copy.updateError)
+    }
+  }
+
+  async function handleResendFollowup(lead: Lead) {
+    setResendingId(lead.id)
+    try {
+      const updated = await resendFollowup(lead.id)
+      setLeads((current) => current.map((l) => (l.id === lead.id ? updated : l)))
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        onSessionExpired()
+        return
+      }
+      setError(copy.resendError)
+    } finally {
+      setResendingId(null)
     }
   }
 
@@ -130,7 +162,10 @@ export function Dashboard({ onSessionExpired }: Props) {
                   <th>{copy.columns.email}</th>
                   <th>{copy.columns.volume}</th>
                   <th>{copy.columns.protocol}</th>
+                  <th>{copy.columns.origin}</th>
                   <th>{copy.columns.status}</th>
+                  <th>{copy.columns.followup}</th>
+                  <th>{copy.columns.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -142,6 +177,7 @@ export function Dashboard({ onSessionExpired }: Props) {
                     <td>{lead.email}</td>
                     <td>{lead.volume}</td>
                     <td className={styles.mono}>{lead.protocol}</td>
+                    <td>{originLabel(lead)}</td>
                     <td>
                       <select
                         className={styles.statusSelect}
@@ -155,6 +191,21 @@ export function Dashboard({ onSessionExpired }: Props) {
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td className={styles.mono}>
+                      {lead.followupSentAt
+                        ? new Date(lead.followupSentAt).toLocaleDateString('pt-BR')
+                        : copy.followupPending}
+                    </td>
+                    <td>
+                      <button
+                        className={styles.resendButton}
+                        type="button"
+                        disabled={resendingId === lead.id}
+                        onClick={() => handleResendFollowup(lead)}
+                      >
+                        {resendingId === lead.id ? copy.resendButtonSending : copy.resendButton}
+                      </button>
                     </td>
                   </tr>
                 ))}

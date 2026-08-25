@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ..config import Settings
-from ..deps import get_db, get_settings
+from ..deps import get_db, get_email_sender, get_settings
 from ..models import DemoRequest
 from ..schemas import AdminLoginIn, AdminLoginOut, LeadListOut, LeadOut, LeadStatusIn
 from ..services import antispam
 from ..services.auth import create_admin_token, decode_admin_token, verify_password
+from ..services.email.base import EmailSender
+from ..services.email.templates import lead_followup
 
 router = APIRouter(prefix="/admin")
 
@@ -20,6 +23,18 @@ PAGE_SIZE = 50
 
 def _client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
+
+
+def _get_lead_or_404(lead_id: str, db: Session) -> DemoRequest:
+    try:
+        parsed_id = uuid.UUID(lead_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
+
+    row = db.query(DemoRequest).filter(DemoRequest.id == parsed_id).first()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
+    return row
 
 
 def require_admin(
@@ -85,16 +100,32 @@ def update_lead_status(
     payload: LeadStatusIn,
     db: Session = Depends(get_db),
 ) -> DemoRequest:
-    try:
-        parsed_id = uuid.UUID(lead_id)
-    except ValueError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
-
-    row = db.query(DemoRequest).filter(DemoRequest.id == parsed_id).first()
-    if row is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead não encontrado.")
-
+    row = _get_lead_or_404(lead_id, db)
     row.status = payload.status
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+@router.post(
+    "/leads/{lead_id}/resend-followup",
+    response_model=LeadOut,
+    dependencies=[Depends(require_admin)],
+)
+def resend_followup(
+    lead_id: str,
+    db: Session = Depends(get_db),
+    email_sender: EmailSender = Depends(get_email_sender),
+) -> DemoRequest:
+    """Disparo manual do e-mail de follow-up (mesmo template do cron em
+    `/internal/send-followups`), sem checar status ou prazo de dias úteis —
+    é uma decisão explícita do time, não a regra automática."""
+    row = _get_lead_or_404(lead_id, db)
+
+    subject, html = lead_followup({"protocol": row.protocol, "name": row.name, "office": row.office})
+    email_sender.send(to=row.email, subject=subject, html=html)
+
+    row.followup_sent_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(row)
     return row
