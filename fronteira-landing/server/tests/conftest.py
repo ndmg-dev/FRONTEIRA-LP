@@ -60,13 +60,16 @@ from app.services.email.base import EmailSender  # noqa: E402
 
 
 class FakeEmailSender(EmailSender):
-    """Sender fake para os testes (§B.8) — nunca toca a rede, só registra."""
+    """Sender fake para os testes (§B.8) — nunca toca a rede, só registra.
+    `fail=True` simula uma recusa do provedor (ex.: Resend fora do ar)."""
 
     def __init__(self) -> None:
         self.sent: list[dict[str, object]] = []
+        self.fail = False
 
-    def send(self, *, to, subject, html, reply_to=None) -> None:  # type: ignore[override]
+    def send(self, *, to, subject, html, reply_to=None) -> bool:  # type: ignore[override]
         self.sent.append({"to": to, "subject": subject, "html": html, "reply_to": reply_to})
+        return not self.fail
 
 
 @pytest.fixture(scope="session", autouse=True)

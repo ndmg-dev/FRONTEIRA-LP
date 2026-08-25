@@ -123,7 +123,12 @@ def resend_followup(
     row = _get_lead_or_404(lead_id, db)
 
     subject, html = lead_followup({"protocol": row.protocol, "name": row.name, "office": row.office})
-    email_sender.send(to=row.email, subject=subject, html=html)
+    sent = email_sender.send(to=row.email, subject=subject, html=html)
+    if not sent:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="O provedor de e-mail recusou ou falhou o envio. Veja os logs da API.",
+        )
 
     row.followup_sent_at = datetime.now(timezone.utc)
     db.commit()

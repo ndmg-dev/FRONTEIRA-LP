@@ -160,3 +160,18 @@ def test_resend_followup_404_for_unknown_id(client):
         headers={"Authorization": f"Bearer {token}"},
     )
     assert res.status_code == 404
+
+
+def test_resend_followup_reports_provider_failure(client, fake_email_sender, db_session):
+    row = _create_row(db_session, status="novo")
+    fake_email_sender.fail = True
+    token = _login(client)
+
+    res = client.post(
+        f"/admin/leads/{row.id}/resend-followup",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 502
+
+    db_session.refresh(row)
+    assert row.followup_sent_at is None

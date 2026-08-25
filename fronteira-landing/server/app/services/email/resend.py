@@ -19,11 +19,11 @@ class ResendEmailSender:
 
     def send(
         self, *, to: str, subject: str, html: str, reply_to: Optional[str] = None
-    ) -> None:
+    ) -> bool:
         if not self.api_key:
             # Sem chave configurada (dev local sem provedor): no-op silencioso.
             logger.info("RESEND_API_KEY ausente — e-mail para %s não enviado (dev).", to)
-            return
+            return False
 
         payload: dict[str, object] = {
             "from": self.email_from,
@@ -46,3 +46,5 @@ class ResendEmailSender:
             # Falha de e-mail não derruba a request — o lead já está no
             # Postgres, fonte da verdade (§B.6). Logar e seguir.
             logger.exception("Falha ao enviar e-mail via Resend (to=%s)", to)
+            return False
+        return True

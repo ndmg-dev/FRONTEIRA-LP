@@ -9,4 +9,10 @@ class EmailSender(Protocol):
 
     def send(
         self, *, to: str, subject: str, html: str, reply_to: Optional[str] = None
-    ) -> None: ...
+    ) -> bool:
+        """Devolve True se o provedor aceitou o envio, False caso contrário.
+        Nunca levanta exceção — chamadores em background (routes/demo.py,
+        routes/internal.py) ignoram o retorno de propósito; chamadores
+        síncronos e visíveis ao usuário (o reenvio manual do admin) usam o
+        retorno pra responder com precisão em vez de sempre dizer "ok"."""
+        ...

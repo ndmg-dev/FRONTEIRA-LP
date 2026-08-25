@@ -40,6 +40,7 @@ export function Dashboard({ onSessionExpired }: Props) {
   const [statusFilter, setStatusFilter] = useState<LeadStatus | ''>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [resendingId, setResendingId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -88,9 +89,12 @@ export function Dashboard({ onSessionExpired }: Props) {
 
   async function handleResendFollowup(lead: Lead) {
     setResendingId(lead.id)
+    setError(null)
+    setSuccessMessage(null)
     try {
       const updated = await resendFollowup(lead.id)
       setLeads((current) => current.map((l) => (l.id === lead.id ? updated : l)))
+      setSuccessMessage(copy.resendSuccess(lead.protocol))
     } catch (err) {
       if (err instanceof AdminAuthError) {
         onSessionExpired()
@@ -144,6 +148,11 @@ export function Dashboard({ onSessionExpired }: Props) {
         {error && (
           <p className={styles.error} role="alert">
             {error}
+          </p>
+        )}
+        {successMessage && (
+          <p className={styles.success} role="status">
+            {successMessage}
           </p>
         )}
 
