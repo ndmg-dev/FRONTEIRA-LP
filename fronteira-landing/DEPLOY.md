@@ -76,6 +76,15 @@ Registros DNS (SPF/DKIM) adicionados na Hostinger, na zona de
 continua assim (Resend pode marcar como inválido se algum registro for
 removido acidentalmente).
 
+**DMARC** (TXT em `_dmarc.icmsfronteira`, zona `nucleodigital.cloud`, desde
+2026-08-25): `v=DMARC1; p=none; rua=mailto:nucleodigitalmendoncagalvao@gmail.com; fo=1`.
+Foi adicionado depois de e-mails de follow-up caírem em spam mesmo com
+SPF/DKIM corretos — domínio de envio novo sem DMARC é um sinal forte de spam
+pro Gmail/Google Workspace. `p=none` só monitora, não bloqueia nada; depois
+de um tempo sem problema, considerar evoluir para `p=quarantine` e depois
+`p=reject` (mais rígido, exige SPF/DKIM realmente alinhados em 100% dos
+envios).
+
 ## 3. Migração de banco
 
 Automática. `server/entrypoint.sh` roda `alembic upgrade head` antes de subir

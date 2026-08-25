@@ -105,11 +105,15 @@ desse domínio:
 
 - **SPF** — autoriza o Resend a enviar em nome do domínio.
 - **DKIM** — assina as mensagens; chave gerada no painel do Resend.
-- **DMARC** — política de alinhamento SPF/DKIM (`p=quarantine` ou `p=reject`).
+- **DMARC** — política de alinhamento SPF/DKIM. Configurado em produção desde
+  2026-08-25 como `v=DMARC1; p=none; rua=mailto:nucleodigitalmendoncagalvao@gmail.com; fo=1`
+  (TXT em `_dmarc.icmsfronteira`) — ver `../DEPLOY.md` §2.1.
 
 Sem os três, provedores de e-mail (Gmail, Outlook) tendem a marcar as
 mensagens como spam ou rejeitá-las — isso não é resolvido por código, é
-configuração de DNS do domínio remetente.
+configuração de DNS do domínio remetente. Mesmo com os três presentes, um
+domínio de envio novo ainda pode cair em spam nos primeiros dias/semanas até
+construir reputação — não é algo instantâneo.
 
 ## Decisões em aberto herdadas do spec (§B.9)
 
