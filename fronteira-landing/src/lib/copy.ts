@@ -34,9 +34,9 @@ export const nav = {
 export const hero = {
   eyebrow: 'Apuração fiscal · ICMS-ST · Antecipação',
   headline: {
-    before: 'O cálculo de fronteira que o seu cliente ',
-    highlight: 'consegue auditar',
-    after: '.',
+    before: 'O cálculo de fronteira ',
+    highlight: 'facilitado',
+    after: ' para você.',
   },
   lead: 'Suba o XML da NF-e e receba o ICMS-ST de fronteira e a antecipação já calculados — com a memória de cálculo aberta, passo a passo, e conferência contra o extrato da SEFAZ. Feito para escritórios que apuram dezenas de empresas por competência.',
   ctaPrimary: 'Solicitar demonstração →',
@@ -65,7 +65,7 @@ export const calcMemory = {
 
 export const problem = {
   eyebrow: 'O problema',
-  title: 'A fronteira ainda é resolvida na planilha — e a planilha não se defende.',
+  title: 'Ainda calcula o ICMS-ST na mão?',
   sub: 'Cada nota vira uma linha copiada à mão, cada MVA vira uma busca no regulamento, e quando a SEFAZ questiona, ninguém reconstrói de onde saiu o número.',
   items: [
     {
@@ -82,6 +82,11 @@ export const problem = {
       index: '03',
       title: 'Divergência com a SEFAZ no fim do mês',
       body: 'O confronto entre o que foi apurado e o extrato oficial acontece tarde, no susto, comparando duas planilhas linha a linha.',
+    },
+    {
+      index: '04',
+      title: 'Erro humano no meio do caminho',
+      body: 'Cálculo manual não tem trava: uma célula errada, uma alíquota desatualizada, um MVA trocado. Ninguém percebe até o cliente ou a SEFAZ perguntar.',
     },
   ] as ProblemItem[],
 } as const

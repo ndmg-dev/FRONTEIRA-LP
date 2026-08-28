@@ -418,3 +418,475 @@ Sem observações adicionais.
 4. **Manutenção**: Adicionar comentários explicando a lógica de roteamento pode ajudar na manutenção futura do código.
 
 5. **Fallback Padrão**: Considere adicionar um componente de erro ou uma página 404 para rotas não reconhecidas. Isso melhora a experiência do usuário e facilita o diagnóstico de problemas de roteamento.
+
+## 2026-08-24 15:05:57 — `commit 64367ed (main)`
+
+### Bugs e Erros de Lógica
+
+1. **Acessibilidade**: No componente `FaqItem`, o uso de `aria-expanded` e `aria-controls` está correto, mas é importante garantir que o conteúdo dentro de `<m.div>` seja acessível quando colapsado. Verifique se o estado inicial e as animações não interferem na acessibilidade.
+
+2. **Segurança de Dados**: No arquivo `copy.ts`, o tratamento do endereço IP é mencionado, mas a descrição não especifica como o segredo para o hash SHA-256 é gerenciado. Certifique-se de que o segredo é armazenado de forma segura e não está exposto no código.
+
+### Melhorias Sugeridas
+
+1. **Clareza de Código**: No componente `FaqItem`, a construção da classe CSS poderia ser simplificada usando `classnames` ou uma abordagem similar para melhorar a legibilidade.
+
+2. **Desempenho**: O uso de `useState` para gerenciar o estado de abertura dos itens do FAQ pode ser otimizado se houver muitos itens. Considere usar um estado global ou contexto se o número de itens crescer significativamente.
+
+3. **Reutilização de Código**: A lógica de animação e estado de abertura/fechamento do FAQ pode ser extraída para um hook customizado, promovendo a reutilização e clareza.
+
+4. **Consistência de Estilo**: Verifique se todas as variáveis CSS (`var(--nome)`) estão definidas e utilizadas de forma consistente em todo o projeto para evitar inconsistências visuais.
+
+5. **Documentação**: Considere adicionar comentários ou documentação para explicar a escolha de certas animações ou decisões de design, especialmente se forem complexas ou não triviais.
+
+Sem observações adicionais.
+
+## 2026-08-24 15:12:28 — `fronteira-landing/src/components/Differentiators/Differentiators.tsx`
+
+- **Bug**: A alteração introduzida no código parece ser um erro de digitação. A barra invertida (`\`) antes de `title` não é necessária e pode causar problemas de renderização ou erros de sintaxe.
+
+- **Melhoria**: Remover a barra invertida para garantir que o título seja processado corretamente. 
+
+Sem outras observações.
+
+## 2026-08-24 15:12:52 — `fronteira-landing/src/lib/copy.ts`
+
+### Bugs e Problemas de Lógica
+
+1. **Placeholder de WhatsApp**: O número de WhatsApp é um placeholder (`5500000000000`). Isso pode causar confusão se a página for publicada sem atualização. Certifique-se de atualizar antes do lançamento.
+
+2. **E-mail Exposto**: O e-mail `nucleodigitalmendoncagalvao@gmail.com` está exposto diretamente no código. Isso pode levar a problemas de spam. Considere usar um formulário de contato em vez de expor o e-mail diretamente.
+
+### Melhorias
+
+1. **Comentários de TODO**: O comentário `TODO` é útil, mas pode ser mais visível se for acompanhado de uma anotação de tarefa em um sistema de gerenciamento de projetos para garantir que seja tratado antes do lançamento.
+
+2. **Validação de Links**: Antes de publicar, valide que os links de WhatsApp e Instagram estão corretos e funcionais.
+
+3. **Constantes de Configuração**: Considere mover os dados de contato para um arquivo de configuração separado ou um sistema de gerenciamento de conteúdo para facilitar futuras atualizações sem necessidade de alterar o código fonte.
+
+4. **Internacionalização**: Se o site for multilíngue, considere como os textos de contato serão traduzidos ou adaptados para outros idiomas.
+
+## 2026-08-24 15:13:07 — `fronteira-landing/src/components/Footer/Footer.tsx`
+
+### Bugs e Problemas de Segurança
+
+1. **Falta de `noopener` no `target="_blank"`**: Nos links que abrem em uma nova aba (`target="_blank"`), é recomendado adicionar `rel="noopener noreferrer"` para evitar possíveis vulnerabilidades de segurança relacionadas ao `window.opener`.
+
+### Melhorias
+
+1. **Consistência no uso de `rel`**: Para o link de email, considere adicionar `rel="noopener"` mesmo que não seja estritamente necessário, para manter a consistência com os outros links.
+
+2. **Acessibilidade**: Embora os ícones tenham `aria-hidden="true"`, certifique-se de que os textos alternativos (`aria-label`) sejam descritivos o suficiente para usuários de leitores de tela.
+
+3. **Organização de Importações**: As importações estão um pouco desorganizadas. Considere agrupar as importações externas e internas separadamente para melhorar a legibilidade.
+
+4. **Verificação de Dados**: Certifique-se de que os dados em `footer.contact` estejam sempre disponíveis e sejam válidos para evitar erros de execução. Isso pode ser feito com validações ou valores padrão.
+
+5. **Tamanho dos Ícones**: O tamanho dos ícones é definido diretamente no componente. Considere usar classes CSS para definir tamanhos, o que pode facilitar ajustes futuros e manter o estilo centralizado.
+
+Essas sugestões visam melhorar a segurança, consistência e manutenção do código.
+
+## 2026-08-24 15:13:18 — `fronteira-landing/src/components/Footer/Footer.module.css`
+
+### Bugs e Problemas de Lógica
+
+- **Acessibilidade**: Não há menção de estilos para foco (focus) nos links de contato. Isso pode impactar a navegação por teclado e a acessibilidade.
+
+### Melhorias
+
+- **Consistência de Cores**: Certifique-se de que as variáveis CSS como `--gold`, `--gold-22`, e `--gold-06` estão definidas e são consistentes com o tema geral do site para evitar inconsistências visuais.
+- **Reutilização de Estilos**: Se houver outros componentes que utilizam estilos semelhantes, considere mover essas regras para um arquivo CSS compartilhado para evitar duplicação de código.
+- **Comentários**: Adicionar comentários explicando a intenção de algumas classes pode ajudar na manutenção futura do código.
+
+### Sem observações adicionais.
+
+## 2026-08-24 15:14:51 — `commit 8f80f05 (main)`
+
+### Bugs e Riscos de Segurança
+
+1. **Placeholder de WhatsApp**: O número de WhatsApp é um placeholder e deve ser atualizado antes de ir para produção. Isso está indicado no comentário, mas é crucial garantir que isso seja feito para evitar problemas de comunicação.
+
+2. **Links Externos**: Os links para WhatsApp e Instagram estão configurados para abrir em uma nova aba (`target="_blank"`), mas o link de e-mail não. Embora isso seja comum para links de e-mail, é importante verificar se essa é a intenção desejada.
+
+3. **Segurança de Links Externos**: O atributo `rel="noreferrer"` está sendo usado, mas seria mais seguro usar `rel="noopener noreferrer"` para todos os links externos abertos em uma nova aba para prevenir ataques de tipo "reverse tabnabbing".
+
+### Melhorias
+
+1. **Consistência de Acessibilidade**: Todos os ícones têm `aria-hidden="true"`, o que é bom para acessibilidade, mas certifique-se de que os `aria-labels` nos links fornecem informações suficientes para leitores de tela.
+
+2. **Comentários no Código**: O comentário sobre os placeholders é útil, mas considere adicionar um mecanismo de validação ou um aviso que impeça a publicação com placeholders ainda presentes.
+
+3. **Estilo CSS**: As classes CSS são bem organizadas, mas considere adicionar comentários para descrever blocos de estilos mais complexos, se necessário, para melhorar a manutenção futura.
+
+4. **Uso de Constantes**: As URLs e labels estão bem encapsuladas no arquivo `copy.ts`, o que é uma boa prática. Certifique-se de que essas constantes sejam facilmente atualizáveis e documentadas para outros desenvolvedores.
+
+5. **Verificação de Links**: Antes de publicar, verifique se todos os links estão corretos e funcionais para evitar redirecionamentos quebrados.
+
+Sem observações adicionais.
+
+## 2026-08-25 08:16:21 — `commit d773ec2 (main)`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0022
+
+Sem observações.
+
+## 2026-08-25 08:41:24 — `fronteira-landing/server/app/routes/admin.py`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0038
+
+- **Erro de Lógica**: A função `_get_lead_or_404` está retornando um erro 404 para qualquer `ValueError` ao tentar converter `lead_id` para UUID. Isso pode ser enganoso se o erro não for especificamente devido a um UUID inválido. Considere capturar apenas `ValueError` específico para UUID.
+- **Melhoria de Segurança**: Não há verificação de permissões na função `_get_lead_or_404`. Certifique-se de que apenas usuários autorizados possam acessar informações de leads.
+- **Melhoria de Código**: A função `_get_lead_or_404` poderia ser renomeada para algo mais descritivo, como `get_demo_request_or_404`, para refletir melhor o que está sendo retornado.
+- **Melhoria de Código**: Considere adicionar logs para rastrear quando um lead não é encontrado, o que pode ajudar na depuração e monitoramento.
+
+## 2026-08-25 08:41:35 — `fronteira-landing/server/app/routes/admin.py`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0063
+
+- **Risco de Segurança**: No método `resend_followup`, o envio de e-mail de follow-up é feito sem verificar o status ou o prazo de dias úteis. Isso pode levar a envios indesejados ou repetidos de e-mails, o que pode ser considerado spam. Deve haver uma verificação ou confirmação adicional antes de permitir o envio manual.
+  
+- **Melhoria de Clareza**: A função `_get_lead_or_404` poderia ser documentada para esclarecer que ela levanta uma exceção HTTP 404 se o lead não for encontrado, melhorando a compreensão do código.
+
+- **Melhoria de Performance**: No método `resend_followup`, a função `datetime.now(timezone.utc)` é usada para definir `followup_sent_at`. Considere usar `datetime.utcnow().replace(tzinfo=timezone.utc)` para evitar a dependência de `now` com `timezone`.
+
+- **Duplicação de Código**: A lógica de conversão de `lead_id` para `UUID` e a busca no banco de dados são duplicadas em `_get_lead_or_404`. A refatoração já ajuda, mas certifique-se de que todos os pontos de uso dessa lógica sejam substituídos pela função para evitar duplicação futura.
+
+- **Erro de Lógica Potencial**: Não há tratamento para falhas no envio de e-mail. Se `email_sender.send` falhar, `followup_sent_at` ainda será atualizado, o que pode ser enganoso. Considere adicionar tratamento de exceções ao redor do envio de e-mail para garantir que `followup_sent_at` só seja atualizado em caso de sucesso.
+
+## 2026-08-25 08:41:50 — `fronteira-landing/server/tests/test_admin.py`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0046
+
+- **Bugs e Erros de Lógica:**
+  - O teste `test_resend_followup_ignores_status_and_timing` não verifica se o campo `followup_sent_at` foi atualizado no banco de dados após o envio do email. Isso pode levar a falsos positivos se a lógica de atualização do banco de dados estiver incorreta.
+  - O teste `test_resend_followup_sends_email_and_marks_sent` verifica duas formas de acessar o campo `followupSentAt`, mas não garante que ambas são necessárias. Isso pode indicar inconsistência na API ou no teste.
+
+- **Melhorias:**
+  - Considere adicionar verificações para garantir que o email enviado tenha o conteúdo esperado, não apenas que foi enviado para o destinatário correto.
+  - Adicione comentários explicativos para os testes, especialmente para aqueles que lidam com casos de borda, para melhorar a clareza do código.
+  - Considere usar constantes ou variáveis para strings repetidas, como o endpoint `"/admin/leads/{row.id}/resend-followup"`, para facilitar a manutenção e evitar erros de digitação.
+
+## 2026-08-25 08:41:54 — `fronteira-landing/server/tests/test_admin.py`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0023
+
+Sem observações.
+
+## 2026-08-25 08:42:49 — `fronteira-landing/src/lib/admin.ts`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0038
+
+- **Risco de Segurança**: A função `resendFollowup` utiliza `authedFetch` para fazer uma requisição POST, mas não há verificação de permissões ou autenticação explícita no código apresentado. Certifique-se de que `authedFetch` está corretamente implementando autenticação e autorização para evitar acessos não autorizados.
+- **Tratamento de Erros**: A função lança uma exceção genérica `AdminApiError` se a resposta não for bem-sucedida. Considere fornecer mensagens de erro mais detalhadas ou específicas para facilitar o diagnóstico de problemas.
+- **Casos de Borda**: Não há tratamento para casos em que a resposta da API não seja um JSON válido ou não esteja no formato esperado. Isso pode causar falhas na execução de `fromApi`.
+
+Sugestões de melhoria:
+- Adicione logs para capturar o erro específico retornado pela API antes de lançar `AdminApiError`. Isso ajudará na depuração.
+- Considere adicionar validação para o parâmetro `id` antes de fazer a requisição para garantir que ele esteja no formato esperado.
+- Verifique se `fromApi` está preparado para lidar com dados inesperados ou inválidos.
+
+## 2026-08-25 08:43:04 — `fronteira-landing/src/lib/copy.ts`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0015
+
+Sem observações.
+
+## 2026-08-25 08:43:12 — `fronteira-landing/src/pages/Admin/Dashboard.tsx`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0017
+
+Sem observações.
+
+## 2026-08-25 08:43:20 — `fronteira-landing/src/pages/Admin/Dashboard.tsx`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0045
+
+- **Erro de lógica**: Na função `originLabel`, ao capturar o `hostname` do `referrer`, não há verificação se o `referrer` é uma URL válida antes de tentar criar um objeto `URL`. Isso pode causar exceções se o `referrer` não for uma URL válida.
+- **Melhoria de segurança**: A função `originLabel` não sanitiza a entrada do `referrer`, o que pode ser um vetor para ataques de injeção se o valor for exibido diretamente em algum lugar. Considere sanitizar a saída antes de usá-la em qualquer contexto de exibição.
+- **Melhoria de clareza**: A função `originLabel` poderia ser mais clara se utilizasse um nome mais descritivo, como `getLeadOriginLabel`, para indicar que está retornando um rótulo de origem para um lead.
+
+Sugestões:
+- Adicione uma verificação para garantir que `lead.referrer` seja uma URL válida antes de tentar criar um objeto `URL`.
+- Sanitizar a saída da função `originLabel` antes de utilizá-la em qualquer contexto de exibição.
+- Considere renomear a função `originLabel` para algo mais descritivo, como `getLeadOriginLabel`.
+
+## 2026-08-25 08:43:24 — `fronteira-landing/src/pages/Admin/Dashboard.tsx`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0051
+
+- **Erro de lógica ao tratar `referrer`:** No método `originLabel`, ao tentar criar uma nova URL com `lead.referrer`, se `lead.referrer` não for uma URL válida, o código captura a exceção e retorna `lead.referrer` como está. Isso pode resultar em valores inesperados ou não sanitizados sendo exibidos, o que pode ser um problema de segurança ou de clareza.
+
+- **Falta de tratamento de erro específico:** No `handleResendFollowup`, o tratamento de erros é genérico, exceto para `AdminAuthError`. Seria melhor identificar e tratar outros tipos de erros específicos que podem ocorrer, para fornecer feedback mais preciso ao usuário.
+
+Sugestões de melhoria:
+
+- **Sanitização de `referrer`:** Considere sanitizar o valor de `lead.referrer` antes de retorná-lo, para evitar a exposição de dados potencialmente maliciosos ou confusos.
+
+- **Melhoria na clareza dos erros:** Ao capturar erros no `handleResendFollowup`, forneça mensagens de erro mais detalhadas ou logue os erros para facilitar o diagnóstico de problemas.
+
+- **Comentários e documentação:** Adicione comentários explicativos para funções complexas ou que lidam com lógica de negócios importante, como `originLabel` e `handleResendFollowup`, para melhorar a manutenção do código.
+
+## 2026-08-25 08:43:36 — `fronteira-landing/src/pages/Admin/Dashboard.tsx`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0058
+
+- **Risco de Segurança**: A função `originLabel` tenta criar uma nova URL a partir do `lead.referrer` sem validação adequada. Isso pode levar a exceções não tratadas se o `referrer` não for uma URL válida. Embora haja um `catch`, é importante garantir que a entrada seja validada antes de tentar criar um objeto URL.
+  
+- **Tratamento de Erros**: No método `handleResendFollowup`, o erro genérico é capturado e uma mensagem de erro é definida. Seria mais robusto logar o erro completo para facilitar o diagnóstico de problemas.
+
+- **Melhoria de Performance**: A função `handleResendFollowup` atualiza a lista de leads inteira, mesmo que apenas um lead seja alterado. Isso pode ser otimizado para atualizar apenas o lead específico.
+
+- **Clareza do Código**: Considere adicionar comentários para explicar a lógica de `originLabel` e `handleResendFollowup`, especialmente em relação ao tratamento de erros e manipulação de estados.
+
+- **Acessibilidade**: O botão de reenvio de follow-up não possui atributos de acessibilidade, como `aria-label`, que poderiam melhorar a experiência de usuários com deficiência visual.
+
+## 2026-08-25 08:43:44 — `fronteira-landing/src/pages/Admin/Admin.module.css`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0015
+
+Sem observações.
+
+## 2026-08-25 08:43:52 — `fronteira-landing/src/pages/Admin/Admin.module.css`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0016
+
+Sem observações.
+
+## 2026-08-25 08:51:32 — `commit c67d5d7 (main)`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0122
+
+- **Risco de Segurança**: O endpoint `/admin/leads/{id}/resend-followup` permite o reenvio de e-mails de follow-up sem qualquer verificação de status ou tempo. Isso pode ser explorado para enviar e-mails em massa, caso as credenciais de administrador sejam comprometidas. Considere adicionar limites de taxa ou verificações adicionais para mitigar abusos.
+- **Melhoria de Código**: A função `_get_lead_or_404` é uma boa abstração, mas poderia ser melhorada para incluir logs de auditoria quando um lead não é encontrado, ajudando na identificação de possíveis problemas de integridade de dados.
+- **Melhoria de Performance**: No frontend, a função `handleResendFollowup` atualiza todo o estado dos leads após o reenvio de um follow-up. Isso pode ser otimizado para atualizar apenas o lead específico que foi modificado, reduzindo a quantidade de re-renderizações desnecessárias.
+- **Clareza do Código**: A função `originLabel` no frontend poderia ser mais clara se usasse um `switch` ou `if-else` para lidar com as diferentes condições de origem, melhorando a legibilidade.
+- **Teste de Caso de Borda**: Não há testes para verificar o comportamento do sistema quando o serviço de e-mail falha. Adicionar testes para simular falhas no envio de e-mail pode ajudar a garantir que o sistema lida corretamente com esses casos.
+
+## 2026-08-25 08:59:21 — `fronteira-landing/src/lib/copy.ts`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0014
+
+Sem observações.
+
+## 2026-08-25 08:59:28 — `fronteira-landing/src/pages/Admin/Dashboard.tsx`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0014
+
+Sem observações.
+
+## 2026-08-25 08:59:35 — `fronteira-landing/src/pages/Admin/Dashboard.tsx`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0017
+
+Sem observações.
+
+## 2026-08-25 08:59:40 — `fronteira-landing/src/pages/Admin/Dashboard.tsx`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0028
+
+- A adição de `setError(null)` e `setSuccessMessage(null)` no início da função `handleResendFollowup` é uma boa prática para limpar mensagens anteriores, garantindo que o estado de erro ou sucesso seja atualizado corretamente.
+- A exibição de `successMessage` com `role="status"` é uma boa prática para acessibilidade, informando aos leitores de tela sobre a mudança de estado.
+
+Sem observações adicionais.
+
+## 2026-08-25 08:59:49 — `fronteira-landing/src/pages/Admin/Admin.module.css`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0013
+
+Sem observações.
+
+## 2026-08-25 09:00:21 — `fronteira-landing/server/app/services/email/base.py`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0035
+
+- **Erro de Lógica**: A documentação do método `send` sugere que ele nunca levanta exceção, mas isso não é garantido pelo código em si. Se o método subjacente que implementa `send` lançar uma exceção, ela não será capturada, o que pode levar a comportamentos inesperados.
+  
+- **Risco de Segurança**: Não há menção de validação ou sanitização do campo `to`, que pode ser vulnerável a ataques de injeção de e-mail (como SMTP Injection) se não for tratado corretamente.
+
+Sugestões de melhoria:
+- Considere implementar um bloco `try-except` dentro do método `send` para capturar exceções e garantir que o método realmente nunca levante exceções, conforme documentado.
+- Adicione validação e sanitização para o campo `to` para evitar possíveis ataques de injeção.
+- A documentação poderia ser mais clara sobre quais tipos de exceções são esperadas e como elas são tratadas.
+
+## 2026-08-25 09:00:29 — `fronteira-landing/server/app/services/email/resend.py`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0029
+
+- A alteração no método `send` para retornar um `bool` é uma boa prática, pois permite que o chamador saiba se o envio do e-mail foi bem-sucedido ou não. No entanto, não há problemas de lógica ou segurança evidentes no código apresentado.
+
+Sugestões de melhoria:
+- Considere adicionar testes unitários para garantir que o método `send` retorne `True` ou `False` conforme esperado em diferentes cenários (e.g., sem `api_key`, falha na requisição).
+- Documente o método `send` para esclarecer que ele agora retorna um `bool` indicando o sucesso ou falha do envio do e-mail.
+
+## 2026-08-25 09:00:36 — `fronteira-landing/server/app/routes/admin.py`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0037
+
+- **Erro de Lógica**: A função `email_sender.send()` deve retornar um valor booleano para que a verificação `if not sent:` funcione corretamente. Certifique-se de que `email_sender.send()` realmente retorna `True` ou `False` para indicar sucesso ou falha no envio do e-mail.
+  
+- **Caso de Borda Não Tratado**: Se `email_sender.send()` lançar uma exceção em vez de retornar `False`, o código atual não a captura, o que pode resultar em um erro não tratado. Considere envolver a chamada em um bloco `try-except` para capturar exceções específicas que possam ser lançadas durante o envio do e-mail.
+
+- **Melhoria de Clareza**: Adicione logs antes e depois da tentativa de envio de e-mail para facilitar o rastreamento de problemas. Isso pode ajudar a identificar rapidamente se o problema está no envio do e-mail ou em outra parte do fluxo.
+
+- **Segurança**: Certifique-se de que os detalhes do erro não exponham informações sensíveis nos logs, especialmente se os logs forem acessíveis a usuários não autorizados.
+
+## 2026-08-25 09:00:45 — `fronteira-landing/server/tests/conftest.py`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0033
+
+- A alteração introduzida é mínima e não apresenta problemas de lógica ou segurança. A adição do atributo `fail` e a modificação do método `send` para retornar um booleano são adequadas para simular falhas no envio de e-mails durante os testes.
+- A documentação da classe foi atualizada para refletir a nova funcionalidade, o que é uma boa prática.
+
+Sugestões de melhoria:
+- Considere adicionar testes específicos para verificar o comportamento do `FakeEmailSender` quando `fail` é `True`, garantindo que a simulação de falha funcione conforme esperado.
+- Embora o comentário `# type: ignore[override]` seja necessário para evitar erros de tipo, é importante garantir que o uso de `type: ignore` seja realmente justificado e documentado, para evitar problemas futuros de manutenção.
+
+## 2026-08-25 09:00:50 — `fronteira-landing/server/tests/test_admin.py`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0015
+
+Sem observações.
+
+## 2026-08-25 09:02:49 — `fronteira-landing/src/lib/copy.ts`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0026
+
+- A alteração adiciona uma mensagem de sucesso ao reenviar um follow-up, mas não há verificação de que o protocolo fornecido é válido ou seguro. Certifique-se de que o `protocol` é sanitizado antes de ser exibido para evitar problemas de segurança, como injeção de código.
+
+- A mensagem de erro foi alterada para ser mais específica, o que é positivo, mas considere se a exposição de detalhes sobre o provedor de e-mail é apropriada para todos os usuários ou se deve ser restrita a administradores ou logs internos.
+
+Sem observações adicionais.
+
+## 2026-08-25 09:03:20 — `commit 205f6a6 (main)`
+
+**Severidade:** média
+
+**Custo estimado:** $0.0081
+
+- **Bug Real**: Não há um tratamento de exceção específico para falhas de rede ou outros erros que possam ocorrer durante a chamada de API para envio de e-mail. Isso pode resultar em comportamento inesperado se a exceção não for capturada corretamente.
+- **Melhoria de Clareza**: No método `send` da classe `ResendEmailSender`, o comentário sobre a ausência da chave de API poderia ser mais claro ao explicar que o retorno `False` é intencional para indicar a falha no envio.
+- **Melhoria de Teste**: O teste `test_resend_followup_reports_provider_failure` poderia ser expandido para verificar se o log apropriado é gerado quando o envio falha, garantindo que a falha seja registrada corretamente.
+- **Melhoria de Segurança**: Certifique-se de que o log de exceções não exponha informações sensíveis, como detalhes do e-mail ou conteúdo da mensagem, que podem ser usados indevidamente se acessados por partes não autorizadas.
+
+## 2026-08-25 10:47:12 — `commit 7ae2d90 (main)`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0026
+
+Sem observações.
+
+## 2026-08-28 10:30:29 — `fronteira-landing/src/lib/copy.ts`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0015
+
+Sem observações.
+
+## 2026-08-28 10:30:30 — `fronteira-landing/src/lib/copy.ts`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0015
+
+Sem observações.
+
+## 2026-08-28 10:30:33 — `fronteira-landing/src/lib/copy.ts`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0018
+
+Sem observações.
+
+## 2026-08-28 10:30:35 — `fronteira-landing/src/lib/copy.ts`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0018
+
+Sem observações.
+
+## 2026-08-28 10:30:40 — `fronteira-landing/src/lib/copy.ts`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0022
+
+Sem observações.
+
+## 2026-08-28 10:30:40 — `fronteira-landing/src/lib/copy.ts`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0022
+
+Sem observações.
+
+## 2026-08-28 10:30:45 — `fronteira-landing/src/components/Problem/Problem.module.css`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0013
+
+Sem observações.
+
+## 2026-08-28 10:30:45 — `fronteira-landing/src/components/Problem/Problem.module.css`
+
+**Severidade:** baixa
+
+**Custo estimado:** $0.0013
+
+Sem observações.
