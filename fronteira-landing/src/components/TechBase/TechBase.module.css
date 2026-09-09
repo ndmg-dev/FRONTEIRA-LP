@@ -15,6 +15,11 @@
   gap: 9px;
   padding: 26px 22px;
   background: var(--panel);
+  transition: background-color 0.2s ease;
+}
+
+.item:hover {
+  background: var(--panel-2);
 }
 
 .icon {

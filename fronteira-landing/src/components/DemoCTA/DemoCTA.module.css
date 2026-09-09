@@ -1,4 +1,24 @@
+.section {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glow simétrico ao do Hero (mesmo --gold-06, mesma técnica) — ancora o
+   início e o fim da página, deixando as seções do meio propositalmente
+   mais planas e focadas em leitura. */
+.section::before {
+  content: '';
+  position: absolute;
+  inset-block-end: -200px;
+  inset-inline-start: -140px;
+  width: 640px;
+  height: 640px;
+  background: radial-gradient(circle, var(--gold-06), transparent 62%);
+  pointer-events: none;
+}
+
 .grid {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
   align-items: start;

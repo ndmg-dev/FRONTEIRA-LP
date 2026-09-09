@@ -8,7 +8,11 @@ import styles from './DemoCTA.module.css'
 
 export function DemoCTA() {
   return (
-    <section className="section" id="demonstracao" aria-labelledby="demonstracao-title">
+    <section
+      className={['section', styles.section].join(' ')}
+      id="demonstracao"
+      aria-labelledby="demonstracao-title"
+    >
       <div className={[styles.grid, 'container'].join(' ')}>
         <Reveal className={styles.pitch}>
           <Eyebrow>{demoCta.eyebrow}</Eyebrow>
