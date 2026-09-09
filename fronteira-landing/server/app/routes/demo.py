@@ -4,7 +4,8 @@ import time
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..config import Settings
@@ -23,7 +24,25 @@ DEDUPE_WINDOW_MINUTES = 10
 
 @router.get("/health")
 def health() -> dict[str, str]:
+    """Raso de propósito — é o que o `HEALTHCHECK` do Dockerfile usa. Se
+    dependesse do banco, um soluço passageiro no Postgres derrubaria o
+    roteamento do Traefik pra API inteira (mesma classe de problema do
+    incidente documentado em DEPLOY.md §4). Pra checar o banco de verdade,
+    ver `/health/db` — pensado pra um monitor de uptime externo, não pro
+    HEALTHCHECK do container."""
     return {"status": "ok"}
+
+
+@router.get("/health/db")
+def health_db(db: Session = Depends(get_db)) -> dict[str, str]:
+    """Como `/health`, mas confirma que dá pra falar com o Postgres — pra um
+    monitor de uptime externo (UptimeRobot e afins) que precisa saber se a
+    API está *de fato* funcional, não só se o processo está de pé."""
+    try:
+        db.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="database unreachable")
+    return {"status": "ok", "database": "ok"}
 
 
 def _client_ip(request: Request) -> str:

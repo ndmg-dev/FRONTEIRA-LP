@@ -83,10 +83,17 @@ expira em 12h). Rotas:
 
 - `POST /admin/login` — `{username, password}` → `{token}`. Rate-limitado a
   10 tentativas/hora por `ip_hash` (mesmo limitador de `app/services/antispam.py`).
-- `GET /admin/leads?status_filter=&page=` — lista paginada (50/página),
-  requer `Authorization: Bearer <token>`.
+- `GET /admin/leads?status_filter=&page=&search=` — lista paginada
+  (50/página), requer `Authorization: Bearer <token>`. `search` casa (ILIKE)
+  contra nome, escritório ou e-mail.
+- `GET /admin/leads/export?status_filter=&search=` — CSV (com BOM UTF-8,
+  pra abrir certo no Excel) de **todos** os leads que casam o filtro, sem
+  paginação — mesma função de filtro de `/admin/leads`, pra nunca divergir
+  do que a tela mostra.
 - `PATCH /admin/leads/{id}/status` — `{status}` (`novo`/`contatado`/`fechado`/
   `perdido`), requer o mesmo header.
+- `PATCH /admin/leads/{id}/notes` — `{notes}` (até 4000 caracteres), campo
+  livre de observação do time — não afeta status nem follow-up.
 - `POST /admin/leads/{id}/resend-followup` — dispara manualmente o mesmo
   e-mail de `lead_followup` usado pelo cron (`/internal/send-followups`),
   sem checar status nem os dias úteis mínimos — é uma decisão explícita do
@@ -96,7 +103,19 @@ O frontend consome essas rotas em `src/pages/Admin/` (rota `/admin` na SPA,
 sem router — roteamento manual em `src/main.tsx` por `pathname`, code-split
 via `React.lazy`). Token de sessão fica em `sessionStorage`, nunca em
 `localStorage`. O Dashboard mostra origem (UTM/referrer), data do último
-follow-up e um botão de reenvio manual por lead.
+follow-up, campo de observação editável inline, busca por texto e um botão
+de reenvio manual e de exportação CSV por lead/filtro.
+
+## Health checks
+
+- `GET /health` — raso, só confirma que o processo está de pé. É o que o
+  `HEALTHCHECK` do `Dockerfile` usa; não depende do banco de propósito (ver
+  comentário no código — um soluço passageiro no Postgres não deve derrubar
+  o roteamento do Traefik pra API inteira).
+- `GET /health/db` — como o anterior, mas roda um `SELECT 1` real no
+  Postgres (`503` se falhar). Pensado pra um monitor de uptime externo
+  (UptimeRobot e afins) que precisa saber se a API está de fato funcional,
+  não só se o processo existe.
 
 ## Deliverability de e-mail (operação, fora do código)
 

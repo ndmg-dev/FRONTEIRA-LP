@@ -39,6 +39,12 @@ def test_health(client):
     assert res.json() == {"status": "ok"}
 
 
+def test_health_db(client):
+    res = client.get("/health/db")
+    assert res.status_code == 200
+    assert res.json() == {"status": "ok", "database": "ok"}
+
+
 def test_create_demo_request_success(client, fake_email_sender, db_session):
     res = client.post("/demo-requests", json=_payload())
     assert res.status_code == 201

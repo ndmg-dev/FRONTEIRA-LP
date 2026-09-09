@@ -86,6 +86,7 @@ class LeadOut(BaseModel):
     utm: Optional[dict[str, str]] = None
     created_at: datetime
     followup_sent_at: Optional[datetime] = None
+    notes: Optional[str] = None
 
 
 class LeadListOut(BaseModel):
@@ -97,3 +98,7 @@ class LeadListOut(BaseModel):
 
 class LeadStatusIn(BaseModel):
     status: LeadStatus
+
+
+class LeadNotesIn(BaseModel):
+    notes: str = Field(max_length=4000)

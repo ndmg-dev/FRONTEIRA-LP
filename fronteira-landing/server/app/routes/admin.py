@@ -1,15 +1,25 @@
 from __future__ import annotations
 
+import csv
+import io
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..config import Settings
 from ..deps import get_db, get_email_sender, get_settings
 from ..models import DemoRequest
-from ..schemas import AdminLoginIn, AdminLoginOut, LeadListOut, LeadOut, LeadStatusIn
+from ..schemas import (
+    AdminLoginIn,
+    AdminLoginOut,
+    LeadListOut,
+    LeadNotesIn,
+    LeadOut,
+    LeadStatusIn,
+)
 from ..services import antispam
 from ..services.auth import create_admin_token, decode_admin_token, verify_password
 from ..services.email.base import EmailSender
@@ -73,15 +83,33 @@ def login(
     return AdminLoginOut(token=token)
 
 
+def _filtered_leads_query(db: Session, status_filter: str | None, search: str | None):
+    """Base compartilhada entre listagem paginada e export CSV — mesmos
+    filtros, pra nunca divergir (o CSV exporta exatamente o que a tela
+    mostra, sem paginação)."""
+    query = db.query(DemoRequest)
+    if status_filter:
+        query = query.filter(DemoRequest.status == status_filter)
+    if search:
+        term = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                DemoRequest.name.ilike(term),
+                DemoRequest.office.ilike(term),
+                DemoRequest.email.ilike(term),
+            )
+        )
+    return query
+
+
 @router.get("/leads", response_model=LeadListOut, dependencies=[Depends(require_admin)])
 def list_leads(
     page: int = 1,
     status_filter: str | None = None,
+    search: str | None = None,
     db: Session = Depends(get_db),
 ) -> LeadListOut:
-    query = db.query(DemoRequest)
-    if status_filter:
-        query = query.filter(DemoRequest.status == status_filter)
+    query = _filtered_leads_query(db, status_filter, search)
 
     total = query.count()
     page = max(page, 1)
@@ -94,6 +122,63 @@ def list_leads(
     return LeadListOut(items=rows, total=total, page=page, page_size=PAGE_SIZE)
 
 
+@router.get("/leads/export", dependencies=[Depends(require_admin)])
+def export_leads(
+    status_filter: str | None = None,
+    search: str | None = None,
+    db: Session = Depends(get_db),
+) -> Response:
+    """CSV de todos os leads que casam o filtro — sem paginação, ao
+    contrário de `/leads`. Pensado pra abrir em planilha."""
+    rows = _filtered_leads_query(db, status_filter, search).order_by(
+        DemoRequest.created_at.desc()
+    ).all()
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(
+        [
+            "protocolo",
+            "data",
+            "nome",
+            "escritorio",
+            "email",
+            "faixa",
+            "status",
+            "origem_referrer",
+            "utm_source",
+            "follow_up_enviado_em",
+            "observacoes",
+        ]
+    )
+    for row in rows:
+        writer.writerow(
+            [
+                row.protocol,
+                row.created_at.isoformat(),
+                row.name,
+                row.office,
+                row.email,
+                row.volume,
+                row.status,
+                row.referrer or "",
+                (row.utm or {}).get("source", ""),
+                row.followup_sent_at.isoformat() if row.followup_sent_at else "",
+                (row.notes or "").replace("\n", " "),
+            ]
+        )
+
+    filename = f"fronteira-leads-{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+    # BOM UTF-8: sem ele, o Excel no Windows costuma interpretar acentos
+    # errado ao abrir o CSV direto (duplo clique).
+    content = chr(0xFEFF) + buffer.getvalue()
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.patch("/leads/{lead_id}/status", response_model=LeadOut, dependencies=[Depends(require_admin)])
 def update_lead_status(
     lead_id: str,
@@ -102,6 +187,21 @@ def update_lead_status(
 ) -> DemoRequest:
     row = _get_lead_or_404(lead_id, db)
     row.status = payload.status
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+@router.patch("/leads/{lead_id}/notes", response_model=LeadOut, dependencies=[Depends(require_admin)])
+def update_lead_notes(
+    lead_id: str,
+    payload: LeadNotesIn,
+    db: Session = Depends(get_db),
+) -> DemoRequest:
+    """Observação livre do time sobre o lead (CRM leve) — não afeta status
+    nem follow-up automático."""
+    row = _get_lead_or_404(lead_id, db)
+    row.notes = payload.notes
     db.commit()
     db.refresh(row)
     return row
