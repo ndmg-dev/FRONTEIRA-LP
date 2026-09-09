@@ -15,8 +15,9 @@ volume nomeado (`fronteira_db_data`).
 
 > **Tradeoff assumido:** sem backup automático de um clique (o que o Postgres
 > nativo do Coolify teria). Como o banco guarda dado real de lead com
-> consentimento LGPD, vale montar uma rotina própria de `pg_dump` — ainda não
-> feito, ver §5.
+> consentimento LGPD, montamos uma rotina própria de `pg_dump` agendado — ver
+> §3.3. Ela cobre erro lógico, mas não perda do host inteiro (ver limitação
+> em §3.3).
 
 | Serviço | Domínio | Repositório |
 |---|---|---|
@@ -128,6 +129,44 @@ no canto superior direito da landing também leva lá. Login com
 (novo/contatado/fechado/perdido). Ver `server/README.md § Painel
 administrativo` para detalhe das rotas.
 
+## 3.3 Backup do Postgres (pg_dump agendado)
+
+O compose de produção monta um volume separado do de dados,
+`fronteira_db_backups:/backups` no serviço `db` (não existe em dev — só no
+`docker-compose.prod.yml`). Um **Scheduled Task** do Coolify roda `pg_dump`
+diariamente direto no container `db` (a imagem `postgres:16-alpine` já tem o
+binário, não precisa de nada extra):
+
+- **Container:** `db`
+- **Command:**
+  ```
+  sh -c 'set -e; mkdir -p /backups; TS=$(date -u +%Y%m%dT%H%M%SZ); pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > "/backups/fronteira_${TS}.sql.gz"; find /backups -name "fronteira_*.sql.gz" -mtime +14 -delete; echo "backup ok: $TS ($(du -h /backups/fronteira_${TS}.sql.gz | cut -f1))"'
+  ```
+- **Frequency:** `0 6 * * *` (3h da manhã em Brasília, horário de menor uso)
+- **Timeout:** 300s é de sobra pro volume atual de leads
+
+Retenção: 14 dias rodando localmente (`find ... -mtime +14 -delete`) — ajuste
+o número se quiser guardar mais.
+
+**Limitação importante:** isso protege contra erro lógico (`TRUNCATE`/`DELETE`
+acidental, migração que corrompe dado, um `docker compose down -v` por
+engano) — o volume de backup é logicamente separado do de dados. **Não**
+protege contra perda do host inteiro (disco morrer, VPS ser destruída), já
+que os dois volumes moram no mesmo host. Pra proteção completa, copiar os
+`.sql.gz` periodicamente pra fora do servidor (S3/object storage, ou até só
+baixar via `docker cp` de vez em quando) — não implementado ainda, ver §5.
+
+**Restaurar um backup** (assume banco vazio/recriado — `pg_dump` aqui gera
+SQL plano, não faz `DROP`/`CREATE` antes de cada tabela):
+
+```
+docker exec -i <container-db> sh -c \
+  'gunzip -c /backups/fronteira_<TIMESTAMP>.sql.gz | psql -U "$POSTGRES_USER" "$POSTGRES_DB"'
+```
+
+Teste esse comando pelo menos uma vez contra um banco de teste — um backup
+nunca testado não é garantia de nada.
+
 ## 4. Troubleshooting — problemas reais já resolvidos
 
 ### "Bind for 0.0.0.0:8000/80 failed: port is already allocated"
@@ -188,12 +227,13 @@ navegador**, nunca editando esse campo. Se isso acontecer, reverte pra
 
 ## 5. Pendências conhecidas
 
-- **Backup do Postgres:** nenhuma rotina automática hoje (ver tradeoff no
-  topo). Considerar um cron simples de `pg_dump` pro volume ou pra storage
-  externo antes de ter volume relevante de leads reais.
-- **Política de Privacidade:** o link do checkbox de consentimento
-  (`copy.ts → demoForm.consent.href`) ainda aponta pra `#`. Trocar quando a
-  página existir.
+- **Backup fora do servidor:** o `pg_dump` agendado (§3.3) guarda os dumps
+  num volume no mesmo host — falta copiá-los periodicamente pra fora (S3/
+  object storage) pra sobreviver à perda do host inteiro.
+- **Placeholders pendentes:** número de WhatsApp, handle de Instagram
+  (`footer.contact` em `copy.ts`) e razão social/CNPJ
+  (`privacyPolicy.controllerNotice`) ainda são mockados — `npm run build`
+  avisa sobre isso a cada build (`scripts/check-placeholders.mjs`).
 - **Lighthouse em produção:** rodado só contra `localhost` durante o
   desenvolvimento — vale rodar de novo contra a URL pública (fontes/CORS
   mudam levemente os números).
