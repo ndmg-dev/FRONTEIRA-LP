@@ -1,0 +1,4 @@
+# Scripts que rodam dentro de containers Linux (Alpine/Debian) precisam de
+# LF sempre, senão o shebang (`#!/bin/sh`) quebra com CRLF — mesmo em
+# clones/checkouts no Windows, onde `core.autocrlf=true` é comum.
+*.sh text eol=lf
