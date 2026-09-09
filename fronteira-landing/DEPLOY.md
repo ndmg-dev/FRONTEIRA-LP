@@ -15,9 +15,10 @@ volume nomeado (`fronteira_db_data`).
 
 > **Tradeoff assumido:** sem backup automático de um clique (o que o Postgres
 > nativo do Coolify teria). Como o banco guarda dado real de lead com
-> consentimento LGPD, montamos uma rotina própria de `pg_dump` agendado — ver
-> §3.3. Ela cobre erro lógico, mas não perda do host inteiro (ver limitação
-> em §3.3).
+> consentimento LGPD, montamos uma rotina própria de `pg_dump` agendado com
+> cópia opcional pra fora do servidor via rclone — ver §3.3. A cópia externa
+> só funciona depois de configurar um provedor de object storage (§3.3); até
+> lá, o backup é só local e não sobrevive à perda do host inteiro.
 
 | Serviço | Domínio | Repositório |
 |---|---|---|
@@ -129,43 +130,80 @@ no canto superior direito da landing também leva lá. Login com
 (novo/contatado/fechado/perdido). Ver `server/README.md § Painel
 administrativo` para detalhe das rotas.
 
-## 3.3 Backup do Postgres (pg_dump agendado)
+## 3.3 Backup do Postgres (pg_dump agendado + cópia para fora do servidor)
 
-O compose de produção monta um volume separado do de dados,
-`fronteira_db_backups:/backups` no serviço `db` (não existe em dev — só no
-`docker-compose.prod.yml`). Um **Scheduled Task** do Coolify roda `pg_dump`
-diariamente direto no container `db` (a imagem `postgres:16-alpine` já tem o
-binário, não precisa de nada extra):
+Serviço dedicado `backup` (`./backup/Dockerfile` + `backup.sh`) no compose de
+produção — só existe aí, não em dev. Fica ocioso (`sleep infinity`) o tempo
+todo; um **Scheduled Task** do Coolify o aciona diariamente:
 
-- **Container:** `db`
-- **Command:**
-  ```
-  sh -c 'set -e; mkdir -p /backups; TS=$(date -u +%Y%m%dT%H%M%SZ); pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > "/backups/fronteira_${TS}.sql.gz"; find /backups -name "fronteira_*.sql.gz" -mtime +14 -delete; echo "backup ok: $TS ($(du -h /backups/fronteira_${TS}.sql.gz | cut -f1))"'
-  ```
+- **Container:** `backup`
+- **Command:** `/backup.sh`
 - **Frequency:** `0 6 * * *` (3h da manhã em Brasília, horário de menor uso)
 - **Timeout:** 300s é de sobra pro volume atual de leads
 
-Retenção: 14 dias rodando localmente (`find ... -mtime +14 -delete`) — ajuste
-o número se quiser guardar mais.
+O script (`backup/backup.sh`):
+1. `pg_dump` via rede pro serviço `db` (host `db`, credenciais das mesmas
+   env vars `POSTGRES_*` do compose), comprime com gzip, grava em
+   `/backups/fronteira_<timestamp>.sql.gz` — volume `fronteira_db_backups`,
+   separado do volume de dados do Postgres.
+2. Apaga localmente o que tem mais de 14 dias (`find ... -mtime +14`).
+3. **Se `BACKUP_REMOTE` estiver configurado**, copia o dump recém-criado pra
+   fora do servidor via [rclone](https://rclone.org) — senão, só avisa no
+   log e segue só com a cópia local.
+4. `set -eu` + `set -o pipefail`: qualquer etapa que falhar (dump, ou a
+   cópia remota) aborta o script com erro visível no log do Scheduled Task —
+   testado propositalmente derrubando o `pg_dump` (senha errada) antes de
+   documentar, pra garantir que não finge sucesso.
 
-**Limitação importante:** isso protege contra erro lógico (`TRUNCATE`/`DELETE`
-acidental, migração que corrompe dado, um `docker compose down -v` por
-engano) — o volume de backup é logicamente separado do de dados. **Não**
-protege contra perda do host inteiro (disco morrer, VPS ser destruída), já
-que os dois volumes moram no mesmo host. Pra proteção completa, copiar os
-`.sql.gz` periodicamente pra fora do servidor (S3/object storage, ou até só
-baixar via `docker cp` de vez em quando) — não implementado ainda, ver §5.
+### Ativar a cópia para fora do servidor
 
-**Restaurar um backup** (assume banco vazio/recriado — `pg_dump` aqui gera
-SQL plano, não faz `DROP`/`CREATE` antes de cada tabela):
+Sem nada configurado, o backup funciona só localmente (mesma limitação de
+antes: sobrevive a `TRUNCATE`/migração ruim, não sobrevive à perda do host
+inteiro). Pra ativar, defina no Coolify (env vars do resource) um provedor
+de object storage compatível com S3 — qualquer um serve, o rclone abstrai:
 
 ```
-docker exec -i <container-db> sh -c \
-  'gunzip -c /backups/fronteira_<TIMESTAMP>.sql.gz | psql -U "$POSTGRES_USER" "$POSTGRES_DB"'
+BACKUP_REMOTE=backup:<nome-do-bucket>/fronteira
+RCLONE_CONFIG_BACKUP_TYPE=s3
+RCLONE_CONFIG_BACKUP_PROVIDER=<AWS | Cloudflare | Other>
+RCLONE_CONFIG_BACKUP_ACCESS_KEY_ID=<...>
+RCLONE_CONFIG_BACKUP_SECRET_ACCESS_KEY=<...>
+RCLONE_CONFIG_BACKUP_ENDPOINT=<vazio na AWS; obrigatório em R2/B2/Spaces/MinIO>
+RCLONE_CONFIG_BACKUP_REGION=<região, se o provedor pedir>
 ```
 
-Teste esse comando pelo menos uma vez contra um banco de teste — um backup
-nunca testado não é garantia de nada.
+`backup:` é só o nome do remoto — combina com `RCLONE_CONFIG_BACKUP_*`
+(rclone lê a config inteira das env vars, `backup.sh` já roda com
+`--config /dev/null` pra nunca depender de um arquivo de config persistido
+no container). Exemplos de `TYPE`/`PROVIDER`/`ENDPOINT` pros provedores mais
+comuns:
+
+| Provedor | TYPE | PROVIDER | ENDPOINT |
+|---|---|---|---|
+| AWS S3 | `s3` | `AWS` | (deixar vazio) |
+| Cloudflare R2 | `s3` | `Cloudflare` | `https://<account-id>.r2.cloudflarestorage.com` |
+| Backblaze B2 | `s3` | `Other` | `https://s3.<região>.backblazeb2.com` |
+| DigitalOcean Spaces | `s3` | `DigitalOcean` | `https://<região>.digitaloceanspaces.com` |
+
+Depois de configurar, redeploy e espere o próximo horário agendado (ou rode
+o Scheduled Task manualmente) — o log deve terminar com `copiado para
+backup:...` em vez do aviso de "só local".
+
+### Restaurar um backup
+
+Assume banco vazio/recriado — `pg_dump` aqui gera SQL plano, não faz
+`DROP`/`CREATE` antes de cada tabela:
+
+```
+docker exec -i <container-backup> sh -c \
+  'gunzip -c /backups/fronteira_<TIMESTAMP>.sql.gz | PGPASSWORD="$POSTGRES_PASSWORD" psql -h db -U "$POSTGRES_USER" "$POSTGRES_DB"'
+```
+
+(rodar a partir do container `backup`, que já tem `psql`; se o backup só
+existir no remoto, baixe primeiro com `rclone copy backup:<bucket>/fronteira/<arquivo> /backups/`.)
+Testado ponta a ponta — dump → gzip → restore — contra um Postgres
+descartável antes de documentar; um backup nunca restaurado não é garantia
+de nada.
 
 ## 4. Troubleshooting — problemas reais já resolvidos
 
@@ -227,9 +265,10 @@ navegador**, nunca editando esse campo. Se isso acontecer, reverte pra
 
 ## 5. Pendências conhecidas
 
-- **Backup fora do servidor:** o `pg_dump` agendado (§3.3) guarda os dumps
-  num volume no mesmo host — falta copiá-los periodicamente pra fora (S3/
-  object storage) pra sobreviver à perda do host inteiro.
+- **Backup fora do servidor:** o mecanismo existe (`backup/backup.sh` via
+  rclone, ver §3.3), mas fica inativo até `BACKUP_REMOTE`/`RCLONE_CONFIG_
+  BACKUP_*` serem preenchidos no Coolify com um provedor de object storage
+  real — sem isso, o backup segue só local, vulnerável a perda do host.
 - **Placeholders pendentes:** número de WhatsApp, handle de Instagram
   (`footer.contact` em `copy.ts`) e razão social/CNPJ
   (`privacyPolicy.controllerNotice`) ainda são mockados — `npm run build`
