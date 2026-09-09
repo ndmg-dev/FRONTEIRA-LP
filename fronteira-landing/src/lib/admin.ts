@@ -17,6 +17,7 @@ export type Lead = {
   utm: Record<string, string> | null
   createdAt: string
   followupSentAt: string | null
+  notes: string | null
 }
 
 export type LeadList = {
@@ -113,10 +114,15 @@ function fromApi(row: LeadApiShape): Lead {
   }
 }
 
-export async function fetchLeads(params: { status?: LeadStatus | ''; page?: number }): Promise<LeadList> {
+export async function fetchLeads(params: {
+  status?: LeadStatus | ''
+  page?: number
+  search?: string
+}): Promise<LeadList> {
   const query = new URLSearchParams()
   if (params.status) query.set('status_filter', params.status)
   if (params.page) query.set('page', String(params.page))
+  if (params.search) query.set('search', params.search)
 
   const res = await authedFetch(`/admin/leads?${query.toString()}`)
   if (!res.ok) throw new AdminApiError()
@@ -144,4 +150,40 @@ export async function resendFollowup(id: string): Promise<Lead> {
   const res = await authedFetch(`/admin/leads/${id}/resend-followup`, { method: 'POST' })
   if (!res.ok) throw new AdminApiError()
   return fromApi((await res.json()) as LeadApiShape)
+}
+
+export async function updateLeadNotes(id: string, notes: string): Promise<Lead> {
+  const res = await authedFetch(`/admin/leads/${id}/notes`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notes }),
+  })
+  if (!res.ok) throw new AdminApiError()
+  return fromApi((await res.json()) as LeadApiShape)
+}
+
+/** CSV precisa do header `Authorization`, então não dá pra ser um `<a href>`
+ * simples — busca o blob e simula o clique num link temporário com
+ * `download`, igual o browser faria com um link de verdade. */
+export async function exportLeadsCsv(params: { status?: LeadStatus | ''; search?: string }): Promise<void> {
+  const query = new URLSearchParams()
+  if (params.status) query.set('status_filter', params.status)
+  if (params.search) query.set('search', params.search)
+
+  const res = await authedFetch(`/admin/leads/export?${query.toString()}`)
+  if (!res.ok) throw new AdminApiError()
+
+  const blob = await res.blob()
+  const disposition = res.headers.get('content-disposition') ?? ''
+  const filenameMatch = /filename="?([^"]+)"?/.exec(disposition)
+  const filename = filenameMatch?.[1] ?? 'fronteira-leads.csv'
+
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }

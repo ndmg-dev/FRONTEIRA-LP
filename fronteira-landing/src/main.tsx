@@ -6,11 +6,14 @@ import './styles/global.css'
 
 const AdminApp = lazy(() => import('./pages/Admin/AdminApp'))
 const PrivacyPage = lazy(() => import('./pages/Privacy/PrivacyPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFound/NotFoundPage'))
 
 const container = document.getElementById('app')
 const pathname = window.location.pathname
 
 function Page() {
+  if (pathname === '/') return <App />
+
   if (pathname.startsWith('/admin')) {
     return (
       <Suspense fallback={null}>
@@ -25,7 +28,11 @@ function Page() {
       </Suspense>
     )
   }
-  return <App />
+  return (
+    <Suspense fallback={null}>
+      <NotFoundPage />
+    </Suspense>
+  )
 }
 
 if (container) {

@@ -357,6 +357,7 @@ export const adminDashboardCopy = {
     origin: 'Origem',
     status: 'Status',
     followup: 'Follow-up',
+    notes: 'Observações',
     actions: 'Ações',
   },
   originUnknown: '—',
@@ -365,12 +366,27 @@ export const adminDashboardCopy = {
   resendButtonSending: 'Enviando…',
   resendError: 'O provedor de e-mail recusou o envio. Tente de novo ou confira os logs da API.',
   resendSuccess: (protocol: string) => `Follow-up reenviado (${protocol}).`,
+  searchLabel: 'Buscar',
+  searchPlaceholder: 'Nome, escritório ou e-mail…',
+  exportButton: 'Exportar CSV',
+  exportButtonLoading: 'Exportando…',
+  exportError: 'Não foi possível exportar. Tente novamente.',
+  notesPlaceholder: 'Sem observações — clique pra adicionar',
+  notesSaved: 'Observação salva.',
+  notesError: 'Não foi possível salvar a observação. Tente novamente.',
   empty: 'Nenhum lead encontrado para este filtro.',
   loading: 'Carregando…',
   loadError: 'Não foi possível carregar os leads.',
   updateError: 'Não foi possível atualizar o status. Tente novamente.',
   sessionExpired: 'Sessão expirada. Faça login novamente.',
   pagination: { previous: '← Anterior', next: 'Próxima →', pageOf: (page: number, totalPages: number) => `Página ${page} de ${totalPages}` },
+} as const
+
+export const notFound = {
+  eyebrow: '404',
+  title: 'Essa página não existe.',
+  body: 'O link pode estar errado ou a página pode ter mudado de endereço.',
+  backLink: '← Voltar para o início',
 } as const
 
 export const privacyPolicy = {

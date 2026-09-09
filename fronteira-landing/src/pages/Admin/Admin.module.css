@@ -168,6 +168,46 @@
   color: var(--ink-2);
 }
 
+.searchInput {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  width: 220px;
+  max-width: 100%;
+}
+
+.searchInput:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.exportButton {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.exportButton:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.exportButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
 .filterSelect {
   background: var(--bg-2);
   border: 1px solid var(--line);
@@ -188,7 +228,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 1080px;
+  min-width: 1280px;
 }
 
 .table th {
@@ -248,6 +288,38 @@
 .resendButton:disabled {
   opacity: 0.6;
   cursor: progress;
+}
+
+.notesInput {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  color: var(--ink);
+  font-size: 12px;
+  font-family: inherit;
+  width: 180px;
+  max-width: 100%;
+}
+
+.notesInput::placeholder {
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.notesInput:hover,
+.notesInput:focus-visible {
+  background: var(--bg-2);
+  border-color: var(--line);
+}
+
+.notesInput:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.notesInput:disabled {
+  opacity: 0.6;
 }
 
 .emptyState,

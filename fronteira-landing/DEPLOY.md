@@ -205,6 +205,20 @@ Testado ponta a ponta — dump → gzip → restore — contra um Postgres
 descartável antes de documentar; um backup nunca restaurado não é garantia
 de nada.
 
+## 3.4 Monitoramento de uptime
+
+`GET /health/db` (ver `server/README.md § Health checks`) roda um `SELECT 1`
+real no Postgres — diferente do `/health` raso que o `HEALTHCHECK` do
+Docker usa, pensado especificamente pra um monitor externo confirmar que a
+API está de fato funcional, não só de pé.
+
+Não configuramos nenhum monitor ainda — sugestão: um serviço tipo
+[UptimeRobot](https://uptimerobot.com) (tem plano grátis), monitor HTTP(S)
+batendo em `https://api.icmsfronteira.nucleodigital.cloud/health/db` a cada
+5 minutos, alertando por e-mail/WhatsApp quando cair. Considerar um segundo
+monitor no `web` (`https://icmsfronteira.nucleodigital.cloud/`) pra pegar
+problema de certificado/DNS que não passaria pela API.
+
 ## 4. Troubleshooting — problemas reais já resolvidos
 
 ### "Bind for 0.0.0.0:8000/80 failed: port is already allocated"
@@ -273,9 +287,24 @@ navegador**, nunca editando esse campo. Se isso acontecer, reverte pra
   (`footer.contact` em `copy.ts`) e razão social/CNPJ
   (`privacyPolicy.controllerNotice`) ainda são mockados — `npm run build`
   avisa sobre isso a cada build (`scripts/check-placeholders.mjs`).
-- **Lighthouse em produção:** rodado só contra `localhost` durante o
-  desenvolvimento — vale rodar de novo contra a URL pública (fontes/CORS
-  mudam levemente os números).
+- **Monitor de uptime:** o endpoint (`/health/db`, §3.4) existe, mas
+  nenhum serviço externo está configurado pra bater nele ainda.
+- **DMARC em `p=none`:** configurado em 2026-08-25 (ver `server/README.md`),
+  ainda só monitorando. Evoluir pra `p=quarantine` depois de um tempo sem
+  problema de entrega.
+- **JS não utilizado no bundle principal:** Lighthouse (ver nota abaixo)
+  aponta ~33 KiB de JS carregado e não executado no primeiro paint —
+  provavelmente código do `framer-motion`/seções fora da viewport inicial.
+  Resolver exigiria code-splitting por seção (`React.lazy` por baixo da
+  dobra), não feito ainda — impacto real é pequeno (63 KiB fora do bundle
+  de 264 KiB), não é urgente.
+
+**Lighthouse rodado contra produção em 2026-09-09** (`npx lighthouse` local,
+Chrome headless): **Performance 93 · Acessibilidade 100 · Boas práticas 100
+· SEO 100** (medido antes das mudanças desta seção do CHANGELOG entrarem no
+ar — vale rodar de novo depois do próximo deploy). O único fix aplicado a
+partir do relatório: `BrandLogo` não tinha `width`/`height` explícitos no
+`<img>`, sendo apontado como risco de layout shift — corrigido.
 
 ## Desenvolvimento local não muda
 

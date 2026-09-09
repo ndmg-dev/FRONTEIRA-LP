@@ -3,14 +3,21 @@ import { useEffect, useState } from 'react'
 import {
   AdminAuthError,
   clearAdminToken,
+  exportLeadsCsv,
   fetchLeads,
   resendFollowup,
+  updateLeadNotes,
   updateLeadStatus,
   type Lead,
   type LeadStatus,
 } from '../../lib/admin'
 import { adminDashboardCopy as copy } from '../../lib/copy'
 import styles from './Admin.module.css'
+import { NotesCell } from './NotesCell'
+
+/** Espera essa pausa de digitação antes de refazer a busca — evita um
+ * request por tecla. */
+const SEARCH_DEBOUNCE_MS = 350
 
 const STATUS_OPTIONS: LeadStatus[] = ['novo', 'contatado', 'fechado', 'perdido']
 
@@ -38,17 +45,30 @@ export function Dashboard({ onSessionExpired }: Props) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
   const [statusFilter, setStatusFilter] = useState<LeadStatus | ''>('')
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [resendingId, setResendingId] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
+
+  // Debounce: só propaga `searchInput` -> `search` (que dispara o fetch)
+  // depois de o usuário parar de digitar.
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setSearch(searchInput)
+      setPage(1)
+    }, SEARCH_DEBOUNCE_MS)
+    return () => window.clearTimeout(timeout)
+  }, [searchInput])
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setError(null)
 
-    fetchLeads({ status: statusFilter, page })
+    fetchLeads({ status: statusFilter, page, search })
       .then((result) => {
         if (cancelled) return
         setLeads(result.items)
@@ -70,7 +90,7 @@ export function Dashboard({ onSessionExpired }: Props) {
     return () => {
       cancelled = true
     }
-  }, [statusFilter, page, onSessionExpired])
+  }, [statusFilter, page, search, onSessionExpired])
 
   async function handleStatusChange(lead: Lead, status: LeadStatus) {
     const previous = leads
@@ -103,6 +123,35 @@ export function Dashboard({ onSessionExpired }: Props) {
       setError(copy.resendError)
     } finally {
       setResendingId(null)
+    }
+  }
+
+  async function handleSaveNotes(lead: Lead, notes: string) {
+    try {
+      const updated = await updateLeadNotes(lead.id, notes)
+      setLeads((current) => current.map((l) => (l.id === lead.id ? updated : l)))
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        onSessionExpired()
+        return
+      }
+      setError(copy.notesError)
+    }
+  }
+
+  async function handleExport() {
+    setExporting(true)
+    setError(null)
+    try {
+      await exportLeadsCsv({ status: statusFilter, search })
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        onSessionExpired()
+        return
+      }
+      setError(copy.exportError)
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -143,6 +192,27 @@ export function Dashboard({ onSessionExpired }: Props) {
               </option>
             ))}
           </select>
+
+          <label className={styles.filterLabel} htmlFor="lead-search">
+            {copy.searchLabel}
+          </label>
+          <input
+            id="lead-search"
+            className={styles.searchInput}
+            type="search"
+            placeholder={copy.searchPlaceholder}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+
+          <button
+            className={styles.exportButton}
+            type="button"
+            disabled={exporting}
+            onClick={handleExport}
+          >
+            {exporting ? copy.exportButtonLoading : copy.exportButton}
+          </button>
         </div>
 
         {error && (
@@ -174,6 +244,7 @@ export function Dashboard({ onSessionExpired }: Props) {
                   <th>{copy.columns.origin}</th>
                   <th>{copy.columns.status}</th>
                   <th>{copy.columns.followup}</th>
+                  <th>{copy.columns.notes}</th>
                   <th>{copy.columns.actions}</th>
                 </tr>
               </thead>
@@ -205,6 +276,12 @@ export function Dashboard({ onSessionExpired }: Props) {
                       {lead.followupSentAt
                         ? new Date(lead.followupSentAt).toLocaleDateString('pt-BR')
                         : copy.followupPending}
+                    </td>
+                    <td>
+                      <NotesCell
+                        value={lead.notes}
+                        onSave={(notes) => handleSaveNotes(lead, notes)}
+                      />
                     </td>
                     <td>
                       <button
