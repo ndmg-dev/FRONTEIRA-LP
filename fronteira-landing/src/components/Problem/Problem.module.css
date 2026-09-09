@@ -13,6 +13,11 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
+  transition: border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--gold-40);
 }
 
 .index {
